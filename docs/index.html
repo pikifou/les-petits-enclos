@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#657c62">
+  <meta name="description" content="200 énigmes dans cinq mondes. Un animal par ligne, colonne et enclos.">
+  <title>Les Petits Enclos · Ludiworld</title>
+  <link rel="icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+  <script defer src="ludi.js"></script>
+  <script defer src="levels.js"></script>
+  <script defer src="logic.js"></script>
+  <script defer src="state.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <main id="app">
+    <nav class="topbar"><span class="brand">ludiworld <i aria-hidden="true">✳</i></span><div><button id="language" class="small">EN</button><button id="sound" class="small" aria-label="Son">♪</button><button id="help" class="small" aria-label="Règles">?</button></div></nav>
+    <section id="home" class="screen">
+      <header class="title"><p data-t="eyebrow">Une aventure de logique</p><h1 data-t="title">Les Petits<br>Enclos</h1></header>
+      <div class="story"><img class="boy" src="assets/berger.webp" alt=""><p data-t="story">Viens avec moi ! On traverse cinq mondes pour aider chaque animal à trouver sa place.</p></div>
+      <button id="continue" class="primary"></button><p id="total" class="total"></p>
+      <div id="worlds" class="worlds"></div>
+      <p class="quiet" data-t="quiet">200 énigmes, à ton rythme.</p>
+    </section>
+    <section id="play" class="screen" hidden>
+      <header class="hud"><button id="map" class="small" aria-label="Mondes">‹</button><div><p id="worldName"></p><h1><span data-t="level">Niveau</span> <b id="number"></b><small>/ 200</small></h1></div><span id="counter"></span></header>
+      <div class="rules-mini"><span data-t="row">1 par ligne</span><span data-t="column">1 par colonne</span><span data-t="region">1 par enclos</span></div>
+      <p class="apart" data-t="apart">Sans se toucher, même par un coin.</p>
+      <div class="board-frame"><div id="board" role="grid" aria-label="Enclos"></div></div>
+      <div id="inventory" class="inventory" aria-label="Animaux à placer"></div>
+      <p id="feedback" class="feedback" aria-live="polite"></p>
+      <p class="gesture" data-t="gesture">Appui : × · Double appui : animal · Glisse : ×</p>
+      <div class="actions"><button id="undo"><b aria-hidden="true">↶</b><span data-t="undo">Annuler</span></button><button id="reset"><b aria-hidden="true">↻</b><span data-t="reset">Reprendre</span></button><button id="hint"><b aria-hidden="true">✧</b><span data-t="hint">Indice</span></button></div>
+      <div class="keeper"><img src="assets/berger.webp" alt=""><span data-t="keeper">À chacun sa petite place.</span></div>
+    </section>
+  </main>
+  <dialog id="info"><button class="close" data-close aria-label="Fermer">×</button><div id="infoContent"></div><button class="primary" data-close data-t="ok">D’accord</button></dialog>
+  <dialog id="levels"><button class="close" data-close aria-label="Fermer">×</button><h2 id="levelTitle"></h2><div id="levelList" class="level-list"></div></dialog>
+  <dialog id="victory"><img class="victory-boy" src="assets/berger.webp" alt=""><h2 id="winTitle"></h2><p id="winText"></p><div id="winHeads" class="win-heads"></div><button id="next" class="primary" data-t="next">Continuer</button><button id="winMap" class="text-button" data-t="worlds">Les cinq mondes</button><button id="replay" class="text-button" data-t="reset">Reprendre</button></dialog>
+  <dialog id="pause"><h2 data-t="pause">Petite pause</h2><p data-t="paused">Ta grille est gardée.</p></dialog>
+  <noscript>Active JavaScript pour jouer. / Enable JavaScript to play.</noscript>
+</body>
+</html>
