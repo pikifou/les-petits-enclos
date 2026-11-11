@@ -4,6 +4,8 @@ Un petit jeu de logique bilingue, autonome et compatible Ludiworld. 200 grilles 
 
 Un animal par ligne, colonne et enclos de couleur. Deux animaux ne se touchent pas, même par un coin.
 
+L’entrée « Entraînement » de l’accueil propose dix petites missions : poser, retirer et annuler, marquer et effacer une croix, tracer une ligne et une colonne, comprendre les lignes, les colonnes, les enclos et les voisins en diagonale, puis réussir une grille complète. Chaque action est vérifiée avant de proposer la mission suivante. L’entraînement se reprend en cours et garde une progression séparée des 200 niveaux.
+
 - Appui simple : marquer ou effacer une croix.
 - Appui maintenu et glissement : tracer plusieurs croix, ou les effacer en partant d’une croix.
 - Appui long immobile ou double appui : placer l’animal choisi, ou le retirer.
@@ -20,5 +22,7 @@ Dans le premier monde (niveaux 1 à 40), une erreur ouvre une fenêtre avec la r
 `python build.py` construit `docs/`, publié par GitHub Pages. Servir ce dossier avec un serveur HTTP pour tester le service worker. Le jeu fonctionne seul et dans Ludiworld. Aucun service extérieur, aucune dépendance JavaScript.
 
 `node --test tests/*.test.cjs` vérifie la logique, les identités et les placements. `python tests/navigateur.py` vérifie les gestes et le mode hors ligne sur un serveur local. `python tests/retours.py` vérifie les retours d’erreur, les étoiles, l’appui long souris/tactile et les dispositions portrait/paysage. Ces scripts visent par défaut le port 7374 ; `ENCLOS_URL` permet de viser une autre adresse.
+
+`python tests/entrainement.py` parcourt les dix missions avec les vrais gestes, leur reprise et la sauvegarde séparée de l’aventure. Il vérifie aussi les espaces blancs entre cases et l’affichage sur cinq tailles d’écran.
 
 Illustrations créées avec l’outil intégré de génération d’images, dans la direction artistique de Ludiworld.

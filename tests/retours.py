@@ -101,7 +101,7 @@ async def main():
    assert data['scroll']<=width,data
    assert data['actions']['bottom']<=height,data
    assert data['board']['width']>=min(width-30,240),data
-   assert data['cell']!='none';layouts.append(data)
+   assert data['cell']=='none';layouts.append(data)
    await page.screenshot(path=str(OUT/f'lecture-{width}-{height}.png'),full_page=True)
   await page.set_viewport_size({'width':390,'height':844});await page.locator('#language').click();await page.locator('#help').click()
   assert await page.locator('#info h2').inner_text()=='How to play'

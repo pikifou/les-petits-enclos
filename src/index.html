@@ -14,6 +14,7 @@
   <script defer src="levels.js"></script>
   <script defer src="logic.js"></script>
   <script defer src="state.js"></script>
+  <script defer src="training.js"></script>
   <script defer src="app.js"></script>
 </head>
 <body>
@@ -22,12 +23,14 @@
     <section id="home" class="screen">
       <header class="title"><p data-t="eyebrow">Une aventure de logique</p><h1 data-t="title">Les Petits<br>Enclos</h1></header>
       <div class="story"><img class="boy" src="assets/berger.webp" alt=""><p data-t="story">Viens avec moi ! On traverse cinq mondes pour aider chaque animal à trouver sa place.</p></div>
+      <button id="training" class="training-entry"><span class="training-symbol" aria-hidden="true">✦</span><span><strong data-t="training">Entraînement</strong><small id="trainingSummary"></small></span><b id="trainingCount"></b></button>
       <button id="continue" class="primary"></button><p id="total" class="total"></p>
       <div id="worlds" class="worlds"></div>
       <p class="quiet" data-t="quiet">200 énigmes, à ton rythme.</p>
     </section>
     <section id="play" class="screen" hidden>
       <header class="hud"><button id="map" class="small" aria-label="Mondes">‹</button><div><p id="worldName"></p><h1><span data-t="level">Niveau</span> <b id="number"></b><small>/ 200</small></h1></div><span id="counter"></span></header>
+      <section id="trainingCard" class="training-card" hidden aria-live="polite"><p id="trainingProgress"></p><h2 id="trainingTitle"></h2><p id="trainingInstruction"></p><div id="trainingValidated" hidden><span data-t="missionDone">Mission réussie !</span><button id="trainingNext" class="mission-next" data-t="nextMission">Mission suivante</button></div></section>
       <div class="run-score"><button id="starHelp" aria-label="Étoiles"><span id="stars" class="stars" aria-hidden="true"></span><span id="errors"></span><span class="score-help" aria-hidden="true">ⓘ</span></button></div>
       <div class="rules-mini"><button data-rule="row"><span class="mini-rule row-icon" aria-hidden="true"></span><span data-t="row">1 par ligne</span></button><button data-rule="column"><span class="mini-rule column-icon" aria-hidden="true"></span><span data-t="column">1 par colonne</span></button><button data-rule="region"><span class="mini-rule region-icon" aria-hidden="true"></span><span data-t="region">1 par enclos</span></button></div>
       <p class="apart" data-t="apart">Sans se toucher, même par un coin.</p>

@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const $ = id => document.getElementById(id), S = EnclosState, Logic = PlacementLogic;
+  const $ = id => document.getElementById(id), S = EnclosState, Logic = PlacementLogic, Training = EnclosTraining;
   const worlds = [
     {id:'lucioles',bg:'lucioles',fr:'Le Bois des Lucioles',en:'Firefly Woods'},
     {id:'pandas',bg:'bambou',fr:'La Vallée des Pandas',en:'Panda Valley'},
@@ -25,6 +25,7 @@
   });
   Object.assign(texts.fr, {
     errorTitle:'Regarde la règle',errorOK:'J’ai compris',
+    training:'Entraînement',trainingIntro:'Dix petites missions pour apprendre',trainingResume:'Reprendre les petites missions',trainingReplay:'Refaire les petites missions',mission:'Mission',missionDone:'Mission réussie !',nextMission:'Mission suivante',startAdventure:'Commencer l’aventure',yourTurn:'À toi',trainingFinished:'Tu connais les bases !',trainingFinishedText:'Tu as réussi les dix missions. Les cinq mondes t’attendent.',
     errorAllRules:'Un animal par ligne, par colonne et par enclos. Les animaux ne se touchent pas, même par un coin.',
     errorNoFinish:'Cette place empêcherait de ranger tous les animaux en respectant les règles.'
   });
@@ -41,6 +42,7 @@
   });
   Object.assign(texts.en, {
     errorTitle:'Look at the rule',errorOK:'I understand',
+    training:'Practice',trainingIntro:'Ten little missions to learn',trainingResume:'Resume the little missions',trainingReplay:'Replay the little missions',mission:'Mission',missionDone:'Mission complete!',nextMission:'Next mission',startAdventure:'Start the adventure',yourTurn:'Your turn',trainingFinished:'You know the basics!',trainingFinishedText:'You completed all ten missions. The five worlds are waiting.',
     errorAllRules:'One animal per row, column and enclosure. Animals cannot touch, even at a corner.',
     errorNoFinish:'This place would stop you settling all the animals while following the rules.'
   });
@@ -50,11 +52,15 @@
   if (!saved || typeof saved !== 'object' || Array.isArray(saved)) saved = {};
   let lang = ['fr','en'].includes(saved.lang) ? saved.lang : navigator.language.startsWith('fr') ? 'fr' : 'en';
   let sound = saved.sound === true, current = 1, state, level, world, history = [], gesture = null, pendingTap = null;
+  let adventureCurrent=Number.isInteger(saved.current)&&saved.current>=1&&saved.current<=200?saved.current:1;
   let records = saved.records && typeof saved.records === 'object' && !Array.isArray(saved.records) ? saved.records : {};
   const completed = new Set((Array.isArray(saved.completed) ? saved.completed : []).filter(n => Number.isInteger(n) && n >= 1 && n <= 200));
   const bestStars = {};
   if (saved.bestStars && typeof saved.bestStars === 'object') for (let id=1;id<=200;id++) if ([1,2,3].includes(saved.bestStars[id])) bestStars[id]=saved.bestStars[id];
   let paused = false, wrapping = false, won = false, mode = 'home', shownWorld = 0, audio;
+  let training = null;
+  const storedTraining=saved.training&&typeof saved.training==='object'?saved.training:{};
+  const trainingProgress={completed:[...new Set((Array.isArray(storedTraining.completed)?storedTraining.completed:[]).filter(n=>Number.isInteger(n)&&n>=0&&n<Training.steps.length))],session:storedTraining.session||null};
   let notice = null, noticeTimer, effectTimers = [], lastCount = -1, lastStars = -1;
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const HOLD_MS = 900;
@@ -63,12 +69,16 @@
   const unlocked = () => { let id = 1; while (id < 200 && completed.has(id)) id++; return id; };
   const kit = window.Ludi?.init({game:'les-petits-enclos'});
   if (kit?.inLauncher()) document.body.classList.add('embedded');
-  const headFile = (w, head, id=current) => `assets/${w.id}-${(head + (id-1)%8)%8}.webp`;
+  const headFile = (w, head, id=training?1:current) => `assets/${w.id}-${(head + (id-1)%8)%8}.webp`;
   function save() {
-    try { localStorage.setItem(KEY, JSON.stringify({version:1,lang,sound,current,completed:[...completed],bestStars,records})); }
+    try { localStorage.setItem(KEY, JSON.stringify({version:1,lang,sound,current:adventureCurrent,completed:[...completed],bestStars,records,training:trainingProgress})); }
     catch { $('feedback').textContent = t('saveError'); }
   }
-  function remember() { records[current] = S.clone(state); save(); }
+  function remember() {
+    if(training)trainingProgress.session={index:training.index,phase:training.phase,done:training.done,state:S.clone(state),history:history.map(S.clone)};
+    else records[current]=S.clone(state);
+    save();
+  }
   function clearTap() { pendingTap = null; }
   function tone(kind='place') {
     if (!sound) return;
@@ -118,13 +128,13 @@
       const key=result.rule?`error${result.rule[0].toUpperCase()+result.rule.slice(1)}`:'wrong';
       feedback('error',t(key));effect(cell,'error',head);tone('error');
       try { navigator.vibrate?.(35); } catch { /* Haptics are optional. */ }
-      if(current<=40) showMistake(cell,result.rule,t(key));
-    } else if(result.kind==='placed') {feedback('success',t('placed'));effect(cell,'success',result.head);if(!won)tone();}
+      if(training||current<=40) showMistake(cell,result.rule,t(key));
+    } else if(result.kind==='placed') {feedback('success',t('placed'));effect(cell,'success',result.head);if(!won&&!training?.done)tone();}
     else if(result.kind==='removed') {feedback('neutral',t('removed'));tone('mark');}
     else if(result.kind==='full')feedback('neutral',t('allUsed'));
   }
   function ruleIcon(kind) {
-    return `<svg viewBox="0 0 30 30" fill="none">${Array.from({length:9},(_,i)=>{const active=kind==='row'?Math.floor(i/3)===1:kind==='column'?i%3===1:[0,1,3,4].includes(i);return `<rect x="${i%3*9+2}" y="${Math.floor(i/3)*9+2}" width="8" height="8" rx="1.5" fill="${active?'#dca948':'#e1e4d7'}" stroke="#71836e" stroke-width=".65"/>`;}).join('')}<circle cx="15" cy="15" r="2.5" fill="#365c47"/></svg>`;
+    return `<svg viewBox="0 0 30 30" fill="none">${Array.from({length:9},(_,i)=>{const active=kind==='row'?Math.floor(i/3)===1:kind==='column'?i%3===1:[0,1,3,4].includes(i);return `<rect x="${i%3*9+2}" y="${Math.floor(i/3)*9+2}" width="8" height="8" rx="2" fill="${active?'#dca948':'#edf3eb'}" stroke="#fff" stroke-width="1.2"/>`;}).join('')}<circle cx="15" cy="15" r="2.5" fill="#365c47"/></svg>`;
   }
   function translate() {
     document.documentElement.lang=lang; document.title=lang==='fr'?'Les Petits Enclos · Ludiworld':'Little Enclosures · Ludiworld';
@@ -136,12 +146,14 @@
   }
   function backdrop(w) { document.body.style.backgroundImage=`url('assets/${w.bg}.webp')`; }
   function showHome() {
-    cancelGesture(); clearTap(); clearEffects(); mode='home'; closeDialogs(); $('play').hidden=true; $('home').hidden=false;
+    cancelGesture();if(training)remember();training=null;document.body.classList.remove('training-mode','training-basics');$('trainingCard').hidden=true;clearTap(); clearEffects(); mode='home'; closeDialogs(); $('play').hidden=true; $('home').hidden=false;
     backdrop(worlds[0]); translate();
     const resume = Number.isInteger(saved.current) && saved.current>=1 && saved.current<=unlocked() && !completed.has(saved.current) ? saved.current : unlocked();
     $('continue').textContent=completed.size===200?t('worlds'):completed.size || records[resume] ? `${t('resume')} ${resume}`:t('start');
     $('continue').onclick=()=>completed.size===200?openWorld(4):loadLevel(resume);
     $('total').textContent=`${completed.size} / 200 ${t('solved')}`;
+    $('trainingSummary').textContent=t(trainingProgress.completed.length===Training.steps.length?'trainingReplay':trainingProgress.session?'trainingResume':'trainingIntro');
+    $('trainingCount').textContent=`${trainingProgress.completed.length} / ${Training.steps.length}`;
     $('worlds').replaceChildren();
     worlds.forEach((w,i)=>{
       const count=[...completed].filter(id=>Math.floor((id-1)/40)===i).length, button=document.createElement('button'); button.className='world-card'; button.style.backgroundImage=`url('assets/${w.bg}.webp')`; button.disabled=unlocked()<i*40+1;
@@ -157,10 +169,13 @@
     $('levels').showModal();
   }
   function closeDialogs() { document.querySelectorAll('dialog[open]').forEach(d=>d.close()); }
-  function loadLevel(id) {
-    cancelGesture(); clearTap(); clearEffects(); clearTimeout(noticeTimer); notice=null; closeDialogs(); current=Math.max(1,Math.min(200,id)); saved.current=current;
-    level=PUZZLES.levels[current-1]; world=worlds[Math.floor((current-1)/40)]; state=S.restore(level,records[current]);
-    history=[];lastCount=-1;lastStars=-1; won=Logic.inspect(level,state.marks).won; mode='play'; $('home').hidden=true; $('play').hidden=false;
+  function loadLevel(id, practice=false) {
+    cancelGesture();
+    if(!practice){training=null;document.body.classList.remove('training-mode','training-basics');$('trainingCard').hidden=true;$('play').querySelector('.hud h1 small').textContent='/ 200';}
+    cancelGesture(); clearTap(); clearEffects(); clearTimeout(noticeTimer); notice=null; closeDialogs();
+    if(!practice){current=Math.max(1,Math.min(200,id));adventureCurrent=current;saved.current=current;}
+    if(practice){level=training.level;world=worlds[0];state=training.state;}else{level=PUZZLES.levels[current-1]; world=worlds[Math.floor((current-1)/40)]; state=S.restore(level,records[current]);}
+    history=practice?(training.history||[]):[];lastCount=-1;lastStars=-1; won=!training&&Logic.inspect(level,state.marks).won; mode='play'; $('home').hidden=true; $('play').hidden=false;
     backdrop(world); translate(); $('worldName').textContent=world[lang]; $('number').textContent=current;
     $('board').style.setProperty('--n',level.size); $('board').setAttribute('aria-rowcount',level.size); $('board').setAttribute('aria-colcount',level.size); $('board').replaceChildren();
     level.regions.forEach((region,cell)=>{
@@ -175,7 +190,43 @@
     }
     render(); remember();
     if(won) celebrate(false);
-    const url=new URL(location.href); url.searchParams.set('level',current); window.history.replaceState(null,'',url);
+    const url=new URL(location.href); url.searchParams.set('level',current);if(!practice)url.searchParams.delete('practice'); window.history.replaceState(null,'',url);
+  }
+  function startTraining(index=0,resume=true) {
+    cancelGesture();index=Math.max(0,Math.min(Training.steps.length-1,index));
+    const exercise=Training.create(index,S),session=trainingProgress.session;
+    training={index,phase:0,done:false,level:exercise.level,state:exercise.state};
+    if(resume&&session?.index===index&&Array.isArray(session.state?.marks)&&session.state.marks.length===16){
+      training.state=S.restore(exercise.level,session.state);training.phase=session.phase===1?1:0;
+      training.done=session.done===true&&trainingProgress.completed.includes(index);
+      training.history=(Array.isArray(session.history)?session.history:[]).slice(-100).map(snapshot=>S.restore(exercise.level,snapshot));
+      if(index===1&&training.phase===1&&!training.history.length)training.history=[S.clone(exercise.state)];
+    }
+    document.body.classList.add('training-mode');document.body.classList.toggle('training-basics',index<5);
+    $('trainingCard').hidden=false;loadLevel(current,true);
+    const url=new URL(location.href);url.searchParams.delete('level');url.searchParams.set('practice',index+1);window.history.replaceState(null,'',url);
+    renderTraining();remember();
+  }
+  function renderTraining() {
+    if(!training)return;
+    const copy=Training.text(training.index,training.phase,lang);
+    $('worldName').textContent=t('training');$('play').querySelector('.hud [data-t="level"]').textContent=t('mission');$('number').textContent=training.index+1;$('play').querySelector('.hud h1 small').textContent=`/ ${Training.steps.length}`;
+    $('counter').textContent=training.done?'✓':t('yourTurn');
+    $('trainingProgress').textContent=`${t('mission')} ${training.index+1} / ${Training.steps.length}`;
+    $('trainingTitle').textContent=copy.title;$('trainingInstruction').textContent=copy.instruction;
+    $('trainingInstruction').hidden=training.done;$('trainingValidated').hidden=!training.done;
+    $('trainingCard').classList.toggle('done',training.done);$('trainingNext').textContent=t(training.index===Training.steps.length-1?'startAdventure':'nextMission');$('trainingNext').hidden=wrapping;
+    [...$('board').children].forEach((button,cell)=>button.classList.toggle('training-focus',!training.done&&Training.steps[training.index].focus.includes(cell)));
+  }
+  function checkTraining(before,action) {
+    if(!training||training.done)return;
+    const next=Training.check(training.index,training.phase,before,state,action);training.phase=next.phase;
+    if(next.done){
+      training.done=true;if(!trainingProgress.completed.includes(training.index))trainingProgress.completed.push(training.index);
+      kit?.progress('missions_entrainement',trainingProgress.completed.length);kit?.checkpoint('fin-mission');tone('win');
+      clearTimeout(noticeTimer);notice=null;
+    }
+    remember();render();
   }
   function render() {
     if(!state) return;
@@ -191,16 +242,18 @@
       lastCount=result.count;
     }
     for(let head=0;head<level.size;head++) {
-      const b=$('inventory').children[head],used=state.heads.includes(head); b.className='head-choice'+(used?' placed':'')+(state.selected===head?' selected':''); b.disabled=used||won; b.setAttribute('aria-pressed',String(state.selected===head)); b.setAttribute('aria-label',`${t('choose')} ${head+1}${used?', '+t('used'):''}`);
+      const b=$('inventory').children[head],used=state.heads.includes(head); b.className='head-choice'+(used?' placed':'')+(state.selected===head?' selected':''); b.disabled=used||won||training?.done; b.setAttribute('aria-pressed',String(state.selected===head)); b.setAttribute('aria-label',`${t('choose')} ${head+1}${used?', '+t('used'):''}`);
     }
     renderStatus();
-    $('undo').disabled=!history.length||won; $('reset').disabled=won;
+    $('undo').disabled=!history.length||won||training?.done; $('reset').disabled=won;
+    renderTraining();
   }
-  function finishAction(before, previousLength=history.length) {
+  function finishAction(before, previousLength=history.length,action='animal') {
     const changed=before.selected!==state.selected||before.marks.some((mark,i)=>mark!==state.marks[i]||before.heads[i]!==state.heads[i]);
     if(changed) { history.length=previousLength; history.push(before); if(history.length>100)history.shift(); }
     remember(); render();
-    if(Logic.inspect(level,state.marks).won&&!won){won=true;celebrate(true);}
+    if(training)checkTraining(before,action);
+    else if(Logic.inspect(level,state.marks).won&&!won){won=true;celebrate(true);}
   }
   function celebrate(report) {
     if(report) {
@@ -241,7 +294,11 @@
   function cellAt(event) {
     const rect=$('board').getBoundingClientRect(),x=event.clientX-rect.left,y=event.clientY-rect.top;
     if(x<0||y<0||x>=rect.width||y>=rect.height)return -1;
-    return Math.floor(y/rect.height*level.size)*level.size+Math.floor(x/rect.width*level.size);
+    const style=getComputedStyle($('board')),gapX=parseFloat(style.columnGap)||0,gapY=parseFloat(style.rowGap)||0;
+    const w=(rect.width-gapX*(level.size-1))/level.size,h=(rect.height-gapY*(level.size-1))/level.size;
+    const col=Math.floor(x/(w+gapX)),row=Math.floor(y/(h+gapY));
+    if(col>=level.size||row>=level.size||x-col*(w+gapX)>w||y-row*(h+gapY)>h)return -1;
+    return row*level.size+col;
   }
   function cancelGesture() {
     if(!gesture)return;
@@ -269,7 +326,7 @@
     g.holdTimer=setTimeout(()=>commitHold(g),HOLD_MS);
   }
   $('board').addEventListener('pointerdown',event=>{
-    if(paused||won||mode!=='play'||event.button!==0)return;
+    if(paused||won||training?.done||mode!=='play'||event.button!==0)return;
     if(gesture||!event.isPrimary){cancelGesture();return;}
     const cell=cellAt(event);if(cell<0)return;
     event.preventDefault();$('board').setPointerCapture(event.pointerId);
@@ -295,7 +352,7 @@
     if(!gesture||gesture.pointer!==event.pointerId)return;
     const g=gesture;stopHold(g);gesture=null;
     if($('board').hasPointerCapture(event.pointerId))$('board').releasePointerCapture(event.pointerId);
-    if(!g.committed){finishAction(g.before,g.length);if(g.before.marks.some((mark,i)=>mark!==state.marks[i]))tone('mark');}
+    if(!g.committed){finishAction(g.before,g.length,g.moved?'drag':'cross');if(g.before.marks.some((mark,i)=>mark!==state.marks[i]))tone('mark');}
     pendingTap=!g.committed&&!g.moved?{cell:g.cell,time:event.timeStamp,type:event.pointerType,before:g.before,length:g.length}:null;
   });
   $('board').addEventListener('pointercancel',cancelGesture);
@@ -304,26 +361,31 @@
   $('board').addEventListener('click',event=>event.preventDefault());
   $('board').addEventListener('contextmenu',event=>event.preventDefault());
   $('board').addEventListener('keydown',event=>{
-    const cell=Number(event.target.dataset.cell);if(!Number.isInteger(cell)||paused||won)return;
+    const cell=Number(event.target.dataset.cell);if(!Number.isInteger(cell)||paused||won||training?.done)return;
     const directions={ArrowUp:-level.size,ArrowDown:level.size,ArrowLeft:-1,ArrowRight:1};
     if(event.key in directions){event.preventDefault();const next=Math.max(0,Math.min(level.size**2-1,cell+directions[event.key]));event.target.tabIndex=-1;$('board').children[next].tabIndex=0;$('board').children[next].focus();return;}
-    if(event.key===' '||event.key==='Enter') {event.preventDefault();if(event.repeat)return;clearTap();const before=S.clone(state);if(event.key==='Enter')performAnimal(cell,before,history.length);else{S.cross(state,cell,state.marks[cell]===2?0:2);finishAction(before);tone('mark');}}
+    if(event.key===' '||event.key==='Enter') {event.preventDefault();if(event.repeat)return;clearTap();const before=S.clone(state);if(event.key==='Enter')performAnimal(cell,before,history.length);else{S.cross(state,cell,state.marks[cell]===2?0:2);finishAction(before,history.length,'cross');tone('mark');}}
   });
   $('hint').onclick=()=>{clearTap();const key=S.lesson(level,state,Logic);info(t('ruleTitle'),`<p>${t('lessons')[key]}</p>`,t('hintNote'));};
-  $('undo').onclick=()=>{cancelGesture();clearTap();if(history.length){const errors=state.errors;state=history.pop();state.errors=errors;notice=null;remember();render();tone('mark');}};
-  $('reset').onclick=()=>{info(t('resetTitle'),`<p>${t('resetText')}</p>`);const button=$('info').querySelector('.primary');button.textContent=t('confirm');button.onclick=()=>{history=[];state=S.fresh(level);notice=null;clearTimeout(noticeTimer);clearEffects();remember();render();};};
+  $('undo').onclick=()=>{cancelGesture();clearTap();if(history.length){const before=S.clone(state),errors=state.errors;state=history.pop();state.errors=errors;notice=null;remember();render();if(training)checkTraining(before,'undo');tone('mark');}};
+  $('reset').onclick=()=>{if(training){startTraining(training.index,false);return;}info(t('resetTitle'),`<p>${t('resetText')}</p>`);const button=$('info').querySelector('.primary');button.textContent=t('confirm');button.onclick=()=>{history=[];state=S.fresh(level);notice=null;clearTimeout(noticeTimer);clearEffects();remember();render();};};
   $('map').onclick=showHome;$('help').onclick=help;
   document.querySelectorAll('[data-rule]').forEach(button=>button.onclick=help);
   $('starHelp').onclick=()=>info(t('starTitle'),`<div class="stars star-example">${starMarkup(3)}</div><p>${t('starRules')}</p>`,t('starNote'));
   $('language').onclick=()=>{clearTap();lang=lang==='fr'?'en':'fr';save();if(mode==='home')showHome();else{translate();$('worldName').textContent=world[lang];render();if(won){closeDialogs();celebrate(false);}}};
-  $('sound').onclick=()=>{sound=!sound;save();translate();tone();};
+  $('sound').onclick=()=>{sound=!sound;save();translate();renderTraining();tone();};
+  $('training').onclick=()=>{
+    const session=trainingProgress.session,index=Number.isInteger(session?.index)?session.index:0;
+    startTraining(trainingProgress.completed.length===Training.steps.length?0:session?.done?Math.min(index+1,Training.steps.length-1):index,true);
+  };
+  $('trainingNext').onclick=()=>{if(!training?.done||wrapping)return;if(training.index===Training.steps.length-1)loadLevel(unlocked());else startTraining(training.index+1,false);};
   $('next').onclick=()=>{if(!wrapping)loadLevel(current+1);};$('winMap').onclick=showHome;
   $('replay').onclick=()=>{delete records[current];loadLevel(current);};
   document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>b.closest('dialog').close()));
   document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelGesture();clearTap();if(state)remember();}});
   window.addEventListener('blur',()=>{cancelGesture();clearTap();});
   kit?.onPause(()=>{paused=true;cancelGesture();clearTap();if(state)remember();closeDialogs();$('pause').showModal();audio?.suspend();});
-  kit?.onWrapUp(()=>{wrapping=true;if(won){$('next').hidden=true;kit.checkpoint('fin-enclos');}});
+  kit?.onWrapUp(()=>{wrapping=true;if(training?.done){$('trainingNext').hidden=true;kit.checkpoint('fin-mission');}else if(won){$('next').hidden=true;kit.checkpoint('fin-enclos');}});
   $('pause').addEventListener('cancel',event=>event.preventDefault());
   $('mistake').addEventListener('cancel',event=>event.preventDefault());
   $('ackError').onclick=()=>{
@@ -333,6 +395,8 @@
   };
   showHome();
   const requested=Number(new URLSearchParams(location.search).get('level'));
-  if(Number.isInteger(requested)&&requested>=1&&requested<=unlocked())loadLevel(requested);
+  const practice=Number(new URLSearchParams(location.search).get('practice'));
+  if(Number.isInteger(practice)&&practice>=1&&practice<=Training.steps.length)startTraining(practice-1,true);
+  else if(Number.isInteger(requested)&&requested>=1&&requested<=unlocked())loadLevel(requested);
   if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 })();

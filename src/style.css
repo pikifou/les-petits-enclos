@@ -109,3 +109,34 @@ button:active:not(:disabled){transform:translateY(2px) scale(.98)}.cell:active:n
 #errorDrawing .rule-drawing{width:124px}
 #mistake .primary{width:100%;font-size:18px;min-height:54px;margin-bottom:5px}
 @media(max-height:650px){#mistake{padding:18px 20px}.mistake-sign{width:35px;height:35px;font-size:24px;margin-bottom:9px}#mistake h2{font-size:25px}#mistake #errorRule{font-size:22px;margin:12px 0 18px}#errorMessage{font-size:15px;margin-bottom:12px}#errorDrawing .rule-drawing{width:94px}}
+
+/* Des carreaux doux et des espaces blancs, sans trait de séparation. */
+.board-frame{padding:10px;background:#fff;border:0;border-radius:25px;box-shadow:0 5px 20px #28423324}
+#board{gap:clamp(4px,1.5vw,8px);background:#fff;border-radius:15px}
+.cell{border-radius:clamp(6px,2vw,13px);box-shadow:none}
+.cell img{width:94%;height:94%}
+.cell .cross{width:35%;height:35%}
+.small,.rules-mini,.head-choice,.actions button,dialog,.story p,.keeper span,#starHelp,.hud #counter{background-color:#fff;border-color:#fff}
+.actions #hint{background:#fff}.actions button{box-shadow:0 3px 8px #28423316}
+.head-choice.selected{background:#fff;box-shadow:0 0 0 2px #78a17e33}
+.head-choice.placed::after{background:#fff}
+.rule-drawing{border:0;background:#fff;gap:3px;padding:3px;border-radius:10px}
+.rule-drawing i{background:#edf3eb;border-radius:4px}
+.gesture-drawings>span,.rule-cards section{background:#f4f8f1}
+#mistake{border-color:#fff}
+.training-entry{display:flex;align-items:center;gap:10px;width:100%;margin:12px 0 15px;padding:13px;border:2px solid #fff;border-radius:20px;background:#fff;color:#395642;text-align:left;box-shadow:0 4px 14px #2842331b}
+.training-entry strong,.training-entry small{display:block}.training-entry strong{font-size:17px}.training-entry small{font-size:12px;margin-top:4px}.training-entry>b{margin-left:auto;white-space:nowrap;font-size:12px;padding:7px;background:#edf5e8;border-radius:20px}.training-symbol{font-size:33px;color:#d3a043}
+.training-card{background:#fff;border-radius:20px;padding:12px 15px;margin:4px 0 13px;box-shadow:0 4px 12px #28423315}
+#trainingProgress{font-size:11px;font-weight:bold;letter-spacing:.06em;text-transform:uppercase;color:#6a805f;margin:0 0 5px}
+#trainingTitle{font-size:21px;line-height:1.15;letter-spacing:-.03em;margin:0 0 6px}
+#trainingInstruction{font-size:14px;line-height:1.4;margin:0;min-height:40px}
+#trainingValidated{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:42px}
+#trainingValidated>span{font-size:13px;font-weight:bold;color:#477347}#trainingValidated>span::before{content:'✓ ';font-size:19px}
+.mission-next{min-height:42px;border:0;border-radius:13px;padding:9px 12px;background:#e4b65b;color:#423a26;font-size:13px;font-weight:bold}
+.training-card.done{background:#f7fff3}
+.training-mode .run-score,.training-mode .rules-mini,.training-mode .apart,.training-mode .gesture,.training-mode .keeper{display:none}
+.training-mode.training-basics #hint{display:none}
+.training-mode .cell.training-focus{box-shadow:inset 0 0 0 3px #bf9345}
+.training-mode .cell.training-focus::after{content:'';position:absolute;inset:4px;border:1px dashed #fff9db;border-radius:9px;pointer-events:none}
+@media(max-height:720px) and (orientation:portrait){.training-mode .board-frame{width:min(100%,calc(100dvh - 340px))}.training-card{padding:10px 12px;margin-bottom:10px}#trainingTitle{font-size:18px}#trainingInstruction{font-size:12px;min-height:36px}.training-mode .feedback{min-height:26px}}
+@media(orientation:landscape) and (max-height:600px) and (min-width:600px){.training-card{grid-column:2;grid-row:2/span 3;margin:3px 0 7px;padding:9px 12px}#trainingInstruction{font-size:12px;min-height:34px}#trainingTitle{font-size:18px}.training-mode .inventory{grid-row:5}.training-mode .feedback{grid-row:6}.training-mode .actions{grid-row:8}}
