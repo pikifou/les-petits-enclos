@@ -458,9 +458,9 @@
   $('next').onclick=()=>{if(!wrapping)loadLevel(current+1);};$('winMap').onclick=showHome;
   $('replay').onclick=()=>{delete records[current];loadLevel(current);};
   document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>b.closest('dialog').close()));
-  document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelGesture();clearTap();if(state)remember();}});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelGesture();clearTap();if(state&&mode==='play')remember();}});
   window.addEventListener('blur',()=>{cancelGesture();clearTap();});
-  kit?.onPause(()=>{paused=true;clearDemo();cancelGesture();clearTap();if(state)remember();closeDialogs();$('pause').showModal();audio?.suspend();});
+  kit?.onPause(()=>{paused=true;clearDemo();cancelGesture();clearTap();if(state&&mode==='play')remember();closeDialogs();$('pause').showModal();audio?.suspend();});
   kit?.onWrapUp(()=>{wrapping=true;if(training?.done){$('trainingNext').hidden=true;kit.checkpoint('fin-mission');}else if(won){$('next').hidden=true;kit.checkpoint('fin-enclos');}});
   $('pause').addEventListener('cancel',event=>event.preventDefault());
   $('mistake').addEventListener('cancel',event=>event.preventDefault());
