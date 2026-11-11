@@ -138,5 +138,5 @@ button:active:not(:disabled){transform:translateY(2px) scale(.98)}.cell:active:n
 .training-mode.training-basics #hint{display:none}
 .training-mode .cell.training-focus{box-shadow:inset 0 0 0 3px #bf9345}
 .training-mode .cell.training-focus::after{content:'';position:absolute;inset:4px;border:1px dashed #fff9db;border-radius:9px;pointer-events:none}
-@media(max-height:720px) and (orientation:portrait){.training-mode .board-frame{width:min(100%,calc(100dvh - 340px))}.training-card{padding:10px 12px;margin-bottom:10px}#trainingTitle{font-size:18px}#trainingInstruction{font-size:12px;min-height:36px}.training-mode .feedback{min-height:26px}}
+@media(max-height:720px) and (orientation:portrait){.training-mode .board-frame{width:min(100%,calc(100dvh - 350px))}.training-card{padding:10px 12px;margin-bottom:10px}#trainingTitle{font-size:18px}#trainingInstruction{font-size:12px;min-height:36px}.training-mode .feedback{min-height:26px}}
 @media(orientation:landscape) and (max-height:600px) and (min-width:600px){.training-card{grid-column:2;grid-row:2/span 3;margin:3px 0 7px;padding:9px 12px}#trainingInstruction{font-size:12px;min-height:34px}#trainingTitle{font-size:18px}.training-mode .inventory{grid-row:5}.training-mode .feedback{grid-row:6}.training-mode .actions{grid-row:8}}
