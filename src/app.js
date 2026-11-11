@@ -61,7 +61,7 @@
   if (saved.bestStars && typeof saved.bestStars === 'object') for (let id=1;id<=200;id++) if ([1,2,3].includes(saved.bestStars[id])) bestStars[id]=saved.bestStars[id];
   let paused = false, wrapping = false, won = false, mode = 'home', shownWorld = 0, audio;
   let training = null;
-  const storedTraining=saved.training?.version===Training.version?saved.training:{};
+  const storedTraining=Training.migrate(saved.training);
   const trainingProgress={version:Training.version,completed:[...new Set((Array.isArray(storedTraining.completed)?storedTraining.completed:[]).filter(n=>Number.isInteger(n)&&n>=0&&n<Training.steps.length))],session:storedTraining.session||null};
   let notice = null, noticeTimer, effectTimers = [], lastCount = -1, lastStars = -1;
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -207,7 +207,7 @@
       training.history=(Array.isArray(session.history)?session.history:[]).slice(-100).map(snapshot=>S.restore(exercise.level,snapshot));
       if(Training.steps[index].id==='undo'&&!training.done&&!training.history.length)training.history=exercise.history;
     }
-    document.body.classList.add('training-mode');document.body.classList.toggle('training-basics',index<7);
+    document.body.classList.add('training-mode');document.body.classList.toggle('training-basics',index<6);
     $('trainingCard').hidden=false;loadLevel(current,true);
     const url=new URL(location.href);url.searchParams.delete('level');url.searchParams.set('practice',index+1);window.history.replaceState(null,'',url);
     renderTraining();remember();if(training.stage==='watch'&&!training.done)runDemo();
@@ -288,7 +288,7 @@
     if(step.kind==='drag')step.path.forEach((cell,i)=>later(250+i*230,()=>{training.demoCell=cell;positionGuide();demoResult(cell,'cross');tap();}));
     else {
       later(350,tap);if(step.kind==='animal')later(670,tap);
-      later(950,()=>demoResult(step.demo,['remove','erase','undo'].includes(step.id)?'remove':step.kind==='animal'?'animal':'cross'));
+      later(950,()=>demoResult(step.demo,['erase','undo'].includes(step.id)?'remove':step.kind==='animal'?'animal':'cross'));
     }
     later(1300,()=>{clearDemo();clearTap();clearTimeout(noticeTimer);notice=null;training.stage='try';training.demoCell=undefined;render();remember();});
   }
@@ -473,7 +473,8 @@
   window.addEventListener('resize',()=>{if(training)requestAnimationFrame(positionGuide);if(document.body.classList.contains('rule-visible'))requestAnimationFrame(fitRuleSheet);});
   showHome();
   const requested=Number(new URLSearchParams(location.search).get('level'));
-  const practice=Number(new URLSearchParams(location.search).get('practice'));
+  let practice=Number(new URLSearchParams(location.search).get('practice'));
+  if(saved.training?.version===3&&practice===saved.training.session?.index+1&&practice>2)practice--;
   if(Number.isInteger(practice)&&practice>=1&&practice<=Training.steps.length)startTraining(practice-1,true);
   else if(Number.isInteger(requested)&&requested>=1&&requested<=unlocked())loadLevel(requested);
   if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});

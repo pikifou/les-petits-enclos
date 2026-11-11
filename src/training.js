@@ -4,9 +4,6 @@
     {id:'place',rows:1,cols:4,tokens:1,kind:'animal',targets:[1],demo:1,
       fr:['Deux petits appuis','Regarde : deux appuis rapides posent une luciole sous la flèche.','À toi ! Fais deux appuis rapides sur la case montrée.'],
       en:['Two little taps','Watch: two quick taps place a firefly under the arrow.','Your turn! Tap the pointed square twice quickly.']},
-    {id:'remove',rows:1,cols:4,tokens:1,kind:'animal',targets:[1],demo:1,animals:[1],
-      fr:['Libérer une case','Deux nouveaux appuis libèrent la case. La luciole pourra être reposée ailleurs.','Tape deux fois sur la luciole pour libérer sa case. Tu pourras ensuite la poser ailleurs.'],
-      en:['Free a square','Two more taps free the square. The firefly can be placed somewhere else.','Tap the firefly twice to free its square. You can place it somewhere else afterwards.']},
     {id:'undo',rows:1,cols:4,tokens:1,kind:'undo',targets:[],demo:2,crosses:[2],
       fr:['Revenir en arrière','Regarde le bouton Annuler : il enlève la dernière action.','À toi ! Appuie sur Annuler pour enlever la croix.'],
       en:['Go back one step','Watch the Undo button: it takes back the last action.','Your turn! Press Undo to remove the cross.']},
@@ -78,7 +75,6 @@
   function place(index,level,state,cell,S) {
     if(!allows(index,'animal',cell))return {kind:'blocked'};
     const step=steps[index];
-    if(step.id==='remove'){if(state.marks[cell]!==1)return {kind:'blocked'};S.animal(state,cell,level.animals);return {kind:'removed'};}
     if(state.marks[cell]===1){if(step.id!=='finish')return {kind:'blocked'};S.animal(state,cell,level.animals);return {kind:'removed'};}
     const trial=S.clone(state);if(!S.animal(trial,cell,level.animals))return {kind:'full'};
     const result=inspect(level,trial);if(result.rule)return {kind:'error',rule:result.rule};
@@ -87,7 +83,6 @@
   }
   function check(index,before,state,action) {
     const step=steps[index];
-    if(step.id==='remove')return state.marks[1]===0&&action==='animal';
     if(step.kind==='undo')return action==='undo'&&state.marks[2]===0;
     if(step.id==='cross')return action==='cross'&&state.marks[2]===2;
     if(step.id==='erase')return action==='cross'&&state.marks[2]===0;
@@ -97,6 +92,13 @@
     return action==='animal'&&state.marks.filter(v=>v===1).length===step.tokens;
   }
   function text(index,stage,lang) {const v=steps[index][lang];return {title:v[0],instruction:v[stage==='watch'?1:2].replace(/^À toi ! /,'').replace(/^Your turn! /,'')};}
-  const api={version:3,steps,create,inspect,allows,place,check,text};
+  function migrate(data) {
+    if(data?.version===4)return data;
+    if(data?.version!==3)return {};
+    const session=data.session;
+    return {...data,version:4,completed:(Array.isArray(data.completed)?data.completed:[]).filter(n=>Number.isInteger(n)&&n!==1).map(n=>n>1?n-1:n),
+      session:!session?null:session.index===1?{index:1}:{...session,index:session.index>1?session.index-1:session.index}};
+  }
+  const api={version:4,steps,create,inspect,allows,place,check,text,migrate};
   if(typeof module!=='undefined')module.exports=api;else root.EnclosTraining=api;
 })(typeof window!=='undefined'?window:globalThis);
