@@ -11,6 +11,8 @@ L’entrée « Entraînement » de l’accueil propose seize exercices dédiés,
 - Double appui : placer l’animal choisi, ou le retirer.
 - Clavier : flèches, Espace pour une croix, Entrée pour un animal.
 
+Dans l’entraînement, « Libérer une case » signifie rendre l’animal disponible pour le poser ailleurs. La mission des lignes utilise quatre colonnes et deux lignes ; celle des colonnes utilise deux colonnes et quatre lignes.
+
 Les indices donnent une règle générale. La progression reste sur l’appareil. Chaque grille terminée offre une pause naturelle. Le classement de difficulté repose sur un solveur logique ; la difficulté ressentie peut varier.
 
 Un placement incorrect est signalé immédiatement et ne reste pas sur la grille. Trois étoiles sans erreur, deux avec une ou deux erreurs, une à partir de trois erreurs. Les croix restent des notes libres. L’annulation conserve le nombre d’erreurs de l’essai ; Reprendre commence un nouvel essai. Le meilleur résultat de chaque niveau est conservé.

@@ -78,7 +78,7 @@
     catch { $('feedback').textContent = t('saveError'); }
   }
   function remember() {
-    if(training)trainingProgress.session={index:training.index,stage:training.stage,done:training.done,state:S.clone(state),history:history.map(S.clone)};
+    if(training)trainingProgress.session={index:training.index,revision:Training.steps[training.index].revision||1,stage:training.stage,done:training.done,state:S.clone(state),history:history.map(S.clone)};
     else records[current]=S.clone(state);
     save();
   }
@@ -201,7 +201,7 @@
     cancelGesture();index=Math.max(0,Math.min(Training.steps.length-1,index));
     const exercise=Training.create(index,S),session=trainingProgress.session;
     training={index,stage:Training.steps[index].kind==='drag'?'watch':'try',done:false,level:exercise.level,state:exercise.state,history:exercise.history};
-    if(resume&&session?.index===index&&Array.isArray(session.state?.marks)&&session.state.marks.length===exercise.state.marks.length){
+    if(resume&&session?.index===index&&(session.revision||1)===(Training.steps[index].revision||1)&&Array.isArray(session.state?.marks)&&session.state.marks.length===exercise.state.marks.length){
       training.state=S.restore(exercise.level,session.state);training.stage=Training.steps[index].kind==='drag'&&session.stage!=='try'?'watch':'try';
       training.done=session.done===true&&trainingProgress.completed.includes(index);
       training.history=(Array.isArray(session.history)?session.history:[]).slice(-100).map(snapshot=>S.restore(exercise.level,snapshot));
