@@ -13,6 +13,8 @@ Les indices donnent une règle générale. La progression reste sur l’appareil
 
 Un placement incorrect est signalé immédiatement et ne reste pas sur la grille. Trois étoiles sans erreur, deux avec une ou deux erreurs, une à partir de trois erreurs. Les croix restent des notes libres. L’annulation conserve le nombre d’erreurs de l’essai ; Reprendre commence un nouvel essai. Le meilleur résultat de chaque niveau est conservé.
 
+Dans le premier monde (niveaux 1 à 40), une erreur ouvre une fenêtre avec la règle en grand, à confirmer avec « J’ai compris ». Ensuite, le message reste visible sept secondes. Le cercle d’appui long apparaît après 600 ms immobile ; l’animal est posé à 900 ms. Tout glissement annule ce maintien.
+
 ## Développement
 
 `python build.py` construit `docs/`, publié par GitHub Pages. Servir ce dossier avec un serveur HTTP pour tester le service worker. Le jeu fonctionne seul et dans Ludiworld. Aucun service extérieur, aucune dépendance JavaScript.

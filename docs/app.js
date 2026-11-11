@@ -23,6 +23,11 @@
     scoreSaved:'Meilleur résultat gardé',rulesIntro:'Chaque dessin montre une règle.',touchTitle:'Un peu d’espace',
     gestureTitle:'Les gestes',gestureShort:'Appui',gestureHold:'Reste appuyé',gestureDrag:'Glisse',gestureAnimal:'Animal',gestureCross:'Croix'
   });
+  Object.assign(texts.fr, {
+    errorTitle:'Regarde la règle',errorOK:'J’ai compris',
+    errorAllRules:'Un animal par ligne, par colonne et par enclos. Les animaux ne se touchent pas, même par un coin.',
+    errorNoFinish:'Cette place empêcherait de ranger tous les animaux en respectant les règles.'
+  });
   Object.assign(texts.en, {
     gesture:'Hold or double tap: animal · Drag: ×',
     controls:'Tap to mark or erase a cross. Drag to mark several. Hold briefly or double tap to place an animal. The same gesture removes an animal already placed.',
@@ -33,6 +38,11 @@
     errorRow:'There is already an animal in this row.',errorColumn:'There is already an animal in this column.',errorRegion:'There is already an animal in this enclosure.',errorTouch:'These animals would touch, even at a corner.',
     scoreSaved:'Best result saved',rulesIntro:'Each drawing shows one rule.',touchTitle:'A little space',
     gestureTitle:'The gestures',gestureShort:'Tap',gestureHold:'Hold briefly',gestureDrag:'Drag',gestureAnimal:'Animal',gestureCross:'Cross'
+  });
+  Object.assign(texts.en, {
+    errorTitle:'Look at the rule',errorOK:'I understand',
+    errorAllRules:'One animal per row, column and enclosure. Animals cannot touch, even at a corner.',
+    errorNoFinish:'This place would stop you settling all the animals while following the rules.'
   });
   const KEY = 'les-petits-enclos.v1';
   let saved;
@@ -47,8 +57,8 @@
   let paused = false, wrapping = false, won = false, mode = 'home', shownWorld = 0, audio;
   let notice = null, noticeTimer, effectTimers = [], lastCount = -1, lastStars = -1;
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const HOLD_MS = 430;
-  const HOLD_INDICATOR_MS = 200;
+  const HOLD_MS = 900;
+  const HOLD_INDICATOR_MS = 600;
   const t = key => texts[lang][key];
   const unlocked = () => { let id = 1; while (id < 200 && completed.has(id)) id++; return id; };
   const kit = window.Ludi?.init({game:'les-petits-enclos'});
@@ -76,7 +86,7 @@
   const errorText = count => `${count} ${t(count===1?'error':'errors')}`;
   function feedback(type,text) {
     clearTimeout(noticeTimer); notice={type,text}; renderStatus();
-    noticeTimer=setTimeout(()=>{notice=null;renderStatus();},type==='error'?3000:1400);
+    noticeTimer=setTimeout(()=>{notice=null;renderStatus();},type==='error'?7000:1400);
   }
   function renderStatus() {
     if(!state)return;
@@ -108,6 +118,7 @@
       const key=result.rule?`error${result.rule[0].toUpperCase()+result.rule.slice(1)}`:'wrong';
       feedback('error',t(key));effect(cell,'error',head);tone('error');
       try { navigator.vibrate?.(35); } catch { /* Haptics are optional. */ }
+      if(current<=40) showMistake(cell,result.rule,t(key));
     } else if(result.kind==='placed') {feedback('success',t('placed'));effect(cell,'success',result.head);if(!won)tone();}
     else if(result.kind==='removed') {feedback('neutral',t('removed'));tone('mark');}
     else if(result.kind==='full')feedback('neutral',t('allUsed'));
@@ -209,6 +220,14 @@
     cancelGesture();clearTap();$('infoContent').innerHTML=`<h2>${title}</h2>${content}${note?`<p class="info-note">${note}</p>`:''}`;
     $('info').querySelector('.primary').onclick=null; $('info').querySelector('.primary').textContent=t('ok'); $('info').showModal();
   }
+  let mistakeCell = null;
+  function showMistake(cell,rule,message) {
+    cancelGesture();clearTap();mistakeCell=cell;
+    $('errorMessage').textContent=rule?message:t('errorNoFinish');
+    $('errorRule').textContent=rule?t('lessons')[rule]:t('errorAllRules');
+    $('errorDrawing').innerHTML=rule?ruleDrawing(rule):'';
+    $('mistake').showModal();
+  }
   function ruleDrawing(kind) {
     const face=headFile(world||worlds[0],0), chosen=kind==='touch'?[5,10]:[5];
     return `<div class="rule-drawing ${kind}" aria-hidden="true">${Array.from({length:16},(_,i)=>{
@@ -306,6 +325,12 @@
   kit?.onPause(()=>{paused=true;cancelGesture();clearTap();if(state)remember();closeDialogs();$('pause').showModal();audio?.suspend();});
   kit?.onWrapUp(()=>{wrapping=true;if(won){$('next').hidden=true;kit.checkpoint('fin-enclos');}});
   $('pause').addEventListener('cancel',event=>event.preventDefault());
+  $('mistake').addEventListener('cancel',event=>event.preventDefault());
+  $('ackError').onclick=()=>{
+    $('mistake').close();clearTimeout(noticeTimer);notice=null;renderStatus();
+    if(mistakeCell!==null)$('board').children[mistakeCell]?.focus();
+    mistakeCell=null;
+  };
   showHome();
   const requested=Number(new URLSearchParams(location.search).get('level'));
   if(Number.isInteger(requested)&&requested>=1&&requested<=unlocked())loadLevel(requested);

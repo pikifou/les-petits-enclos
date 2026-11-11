@@ -37,7 +37,7 @@ dialog{max-width:min(90vw,440px);width:440px;max-height:88dvh;overflow:auto;bord
 .spark{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:2px;background:#ffe495;box-shadow:0 0 2px #fff8d7;transform:rotate(var(--angle)) translateX(var(--distance))}
 .hold-indicator{position:absolute;width:88%;height:88%;inset:6%;z-index:4;overflow:visible;pointer-events:none;transform:rotate(-90deg)}
 .hold-indicator circle{fill:none;stroke-width:4}
-.hold-track{stroke:#fff8ddbb}.hold-progress{stroke:#3d775a;stroke-dasharray:1;stroke-dashoffset:0;animation:hold-progress var(--hold-fill,230ms) linear}
+.hold-track{stroke:#fff8ddbb}.hold-progress{stroke:#3d775a;stroke-dasharray:1;stroke-dashoffset:0;animation:hold-progress var(--hold-fill,300ms) linear}
 .holding{filter:brightness(1.06)}
 .run-score{display:flex;justify-content:center;margin:-3px 0 7px;min-height:29px}
 #starHelp{display:flex;align-items:center;justify-content:center;gap:10px;padding:3px 11px;border:1px solid #fffae7;background:#fff9e4e8;border-radius:30px;min-height:29px;color:#4e5e48;font-size:11px;font-weight:bold}
@@ -50,7 +50,7 @@ dialog{max-width:min(90vw,440px);width:440px;max-height:88dvh;overflow:auto;bord
 .mini-rule{display:inline-flex;width:24px;height:24px;flex-shrink:0}.mini-rule svg{width:100%;height:100%}
 .apart{margin:7px 0 10px}
 .feedback{display:flex;align-items:center;justify-content:center;min-height:34px;max-width:none;border-radius:13px;padding:4px 8px;font-size:12px;margin:4px 0;transition:background-color .12s,color .12s}
-.feedback[data-tone=error]{background:#fff0e6ef;color:#9b342e;box-shadow:inset 0 0 0 1px #b2533a69}
+.feedback[data-tone=error]{background:#fff0e6ef;color:#9b342e;box-shadow:inset 0 0 0 1px #b2533a69;font-size:16px;line-height:1.35;min-height:50px}
 .feedback[data-tone=error]::before{content:'!';display:grid;place-items:center;width:20px;height:20px;flex-shrink:0;margin-right:7px;border-radius:50%;background:#a84439;color:#fff7e8}
 .feedback[data-tone=success]{background:#e8f5d8ed;color:#3d6b42;box-shadow:inset 0 0 0 1px #7499665c}
 .feedback[data-tone=success]::before{content:'✓';margin-right:6px;font-weight:bold;font-size:17px}
@@ -100,3 +100,12 @@ button:active:not(:disabled){transform:translateY(2px) scale(.98)}.cell:active:n
 @media(orientation:landscape) and (max-height:600px) and (min-width:600px){
   #app{max-width:900px;padding-inline:20px}.topbar{height:44px}#play{display:grid;grid-template-columns:minmax(230px,1fr) minmax(260px,1fr);column-gap:24px;padding-bottom:8px;align-items:start}.hud{grid-column:2;grid-row:1;min-height:42px}.run-score{grid-column:2;grid-row:2;margin:0 0 4px}.rules-mini{grid-column:2;grid-row:3;padding:2px}.rules-mini button{min-height:27px}.apart{grid-column:2;grid-row:4;margin:4px 0}.board-frame{grid-column:1;grid-row:1/span 9;width:min(100%,calc(100dvh - 75px));align-self:start}.inventory{grid-column:2;grid-row:5;margin:7px 0 0;min-height:38px}.head-choice{height:38px}.feedback{grid-column:2;grid-row:6;margin:4px 0;min-height:34px}.gesture{grid-column:2;grid-row:7;margin:1px 0 7px}.actions{grid-column:2;grid-row:8}.actions button{min-height:46px}.keeper{display:none}
 }
+#mistake{border-color:#fff4d9;padding:26px 24px 22px}
+.mistake-sign{display:grid;place-items:center;width:45px;height:45px;margin:0 auto 13px;border-radius:50%;background:#b35b42;color:#fff8e9;font-size:29px;font-weight:bold;box-shadow:0 3px 0 #864a3930}
+#mistake h2{font-size:29px;margin:0 0 12px}
+#errorMessage{font-size:17px;line-height:1.4;margin:0 0 18px;color:#6a5544}
+#mistake #errorRule{font-size:24px;font-weight:bold;line-height:1.35;color:#354f3d;margin:18px 0 23px}
+#errorDrawing:empty{display:none}
+#errorDrawing .rule-drawing{width:124px}
+#mistake .primary{width:100%;font-size:18px;min-height:54px;margin-bottom:5px}
+@media(max-height:650px){#mistake{padding:18px 20px}.mistake-sign{width:35px;height:35px;font-size:24px;margin-bottom:9px}#mistake h2{font-size:25px}#mistake #errorRule{font-size:22px;margin:12px 0 18px}#errorMessage{font-size:15px;margin-bottom:12px}#errorDrawing .rule-drawing{width:94px}}
