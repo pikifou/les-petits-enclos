@@ -28,19 +28,20 @@
     </section>
     <section id="play" class="screen" hidden>
       <header class="hud"><button id="map" class="small" aria-label="Mondes">‹</button><div><p id="worldName"></p><h1><span data-t="level">Niveau</span> <b id="number"></b><small>/ 200</small></h1></div><span id="counter"></span></header>
-      <div class="rules-mini"><span data-t="row">1 par ligne</span><span data-t="column">1 par colonne</span><span data-t="region">1 par enclos</span></div>
+      <div class="run-score"><button id="starHelp" aria-label="Étoiles"><span id="stars" class="stars" aria-hidden="true"></span><span id="errors"></span><span class="score-help" aria-hidden="true">ⓘ</span></button></div>
+      <div class="rules-mini"><button data-rule="row"><span class="mini-rule row-icon" aria-hidden="true"></span><span data-t="row">1 par ligne</span></button><button data-rule="column"><span class="mini-rule column-icon" aria-hidden="true"></span><span data-t="column">1 par colonne</span></button><button data-rule="region"><span class="mini-rule region-icon" aria-hidden="true"></span><span data-t="region">1 par enclos</span></button></div>
       <p class="apart" data-t="apart">Sans se toucher, même par un coin.</p>
-      <div class="board-frame"><div id="board" role="grid" aria-label="Enclos"></div></div>
+      <div class="board-frame"><div id="board" role="grid" aria-label="Enclos"></div><div id="effects" aria-hidden="true"></div></div>
       <div id="inventory" class="inventory" aria-label="Animaux à placer"></div>
       <p id="feedback" class="feedback" aria-live="polite"></p>
-      <p class="gesture" data-t="gesture">Appui : × · Double appui : animal · Glisse : ×</p>
+      <p class="gesture" data-t="gesture">Appui long ou double : animal · Glisse : ×</p>
       <div class="actions"><button id="undo"><b aria-hidden="true">↶</b><span data-t="undo">Annuler</span></button><button id="reset"><b aria-hidden="true">↻</b><span data-t="reset">Reprendre</span></button><button id="hint"><b aria-hidden="true">✧</b><span data-t="hint">Indice</span></button></div>
       <div class="keeper"><img src="assets/berger.webp" alt=""><span data-t="keeper">À chacun sa petite place.</span></div>
     </section>
   </main>
   <dialog id="info"><button class="close" data-close aria-label="Fermer">×</button><div id="infoContent"></div><button class="primary" data-close data-t="ok">D’accord</button></dialog>
   <dialog id="levels"><button class="close" data-close aria-label="Fermer">×</button><h2 id="levelTitle"></h2><div id="levelList" class="level-list"></div></dialog>
-  <dialog id="victory"><img class="victory-boy" src="assets/berger.webp" alt=""><h2 id="winTitle"></h2><p id="winText"></p><div id="winHeads" class="win-heads"></div><button id="next" class="primary" data-t="next">Continuer</button><button id="winMap" class="text-button" data-t="worlds">Les cinq mondes</button><button id="replay" class="text-button" data-t="reset">Reprendre</button></dialog>
+  <dialog id="victory"><img class="victory-boy" src="assets/berger.webp" alt=""><h2 id="winTitle"></h2><div id="winStars" class="stars win-stars"></div><p id="winScore"></p><p id="winText"></p><div id="winHeads" class="win-heads"></div><button id="next" class="primary" data-t="next">Continuer</button><button id="winMap" class="text-button" data-t="worlds">Les cinq mondes</button><button id="replay" class="text-button" data-t="reset">Reprendre</button></dialog>
   <dialog id="pause"><h2 data-t="pause">Petite pause</h2><p data-t="paused">Ta grille est gardée.</p></dialog>
   <noscript>Active JavaScript pour jouer. / Enable JavaScript to play.</noscript>
 </body>

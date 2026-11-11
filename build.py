@@ -30,4 +30,5 @@ self.addEventListener('fetch',event=>{
 });
 """.replace('HASH',digest).replace('LIST',json.dumps(['./']+files))
 (OUT / 'sw.js').write_text(worker,encoding='utf-8')
+(OUT / 'index.html').touch()
 print(f'{len(files)} fichiers, cache {digest}')

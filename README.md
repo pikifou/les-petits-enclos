@@ -6,15 +6,17 @@ Un animal par ligne, colonne et enclos de couleur. Deux animaux ne se touchent p
 
 - Appui simple : marquer ou effacer une croix.
 - Appui maintenu et glissement : tracer plusieurs croix, ou les effacer en partant d’une croix.
-- Double appui : placer l’animal choisi, ou le retirer.
+- Appui long immobile ou double appui : placer l’animal choisi, ou le retirer.
 - Clavier : flèches, Espace pour une croix, Entrée pour un animal.
 
 Les indices donnent une règle générale. La progression reste sur l’appareil. Chaque grille terminée offre une pause naturelle. Le classement de difficulté repose sur un solveur logique ; la difficulté ressentie peut varier.
+
+Un placement incorrect est signalé immédiatement et ne reste pas sur la grille. Trois étoiles sans erreur, deux avec une ou deux erreurs, une à partir de trois erreurs. Les croix restent des notes libres. L’annulation conserve le nombre d’erreurs de l’essai ; Reprendre commence un nouvel essai. Le meilleur résultat de chaque niveau est conservé.
 
 ## Développement
 
 `python build.py` construit `docs/`, publié par GitHub Pages. Servir ce dossier avec un serveur HTTP pour tester le service worker. Le jeu fonctionne seul et dans Ludiworld. Aucun service extérieur, aucune dépendance JavaScript.
 
-`node --test tests/*.test.cjs` vérifie la logique et les identités. `python tests/navigateur.py` vérifie les gestes et le mode hors ligne sur un serveur local.
+`node --test tests/*.test.cjs` vérifie la logique, les identités et les placements. `python tests/navigateur.py` vérifie les gestes et le mode hors ligne sur un serveur local. `python tests/retours.py` vérifie les retours d’erreur, les étoiles, l’appui long souris/tactile et les dispositions portrait/paysage. Ces scripts visent par défaut le port 7374 ; `ENCLOS_URL` permet de viser une autre adresse.
 
 Illustrations créées avec l’outil intégré de génération d’images, dans la direction artistique de Ludiworld.

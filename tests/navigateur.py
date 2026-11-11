@@ -15,15 +15,15 @@ async def main():
         page.set_default_timeout(8000)
         page.on('pageerror',lambda e:errors.append(str(e)))
         await page.goto(URL);await page.locator('#continue').click()
-        cell=page.locator('[data-cell="0"]')
+        cell=page.locator('[data-cell="2"]')
         await cell.click();assert await cell.locator('.cross').count()==1
         await page.wait_for_timeout(360);await cell.click();assert await cell.locator('.cross').count()==0
         await page.wait_for_timeout(360);await cell.dblclick(delay=80);assert await cell.locator('img').count()==1
         head=await cell.locator('img').get_attribute('src')
         await page.reload();assert await cell.locator('img').get_attribute('src')==head
-        await page.locator('[data-cell="7"]').dblclick(delay=80)
-        second=await page.locator('[data-cell="7"] img').get_attribute('src');assert head!=second
-        await page.locator('#undo').click();assert await page.locator('[data-cell="7"] img').count()==0
+        await page.locator('[data-cell="4"]').dblclick(delay=80)
+        second=await page.locator('[data-cell="4"] img').get_attribute('src');assert head!=second
+        await page.locator('#undo').click();assert await page.locator('[data-cell="4"] img').count()==0
         assert await cell.locator('img').get_attribute('src')==head
         # Drag paints all crossed cells and has a single undo operation.
         boxes=[await page.locator(f'[data-cell="{i}"]').bounding_box() for i in [12,15]]
@@ -40,8 +40,8 @@ async def main():
         assert await page.locator('#info').inner_text() and await page.locator('.hinted').count()==0
         await page.locator('#info .primary').click()
         # Real touch double tap, not synthetic dblclick.
-        await page.locator('[data-cell="7"]').tap();await page.wait_for_timeout(70);await page.locator('[data-cell="7"]').tap()
-        assert await page.locator('[data-cell="7"] img').count()==1
+        await page.locator('[data-cell="4"]').tap();await page.wait_for_timeout(70);await page.locator('[data-cell="4"]').tap()
+        assert await page.locator('[data-cell="4"] img').count()==1
         await page.locator('#undo').click()
         # Cancelled stroke restores the board and cannot leave an undo entry.
         await page.locator('#board').evaluate("b=>{const r=b.getBoundingClientRect();b.dispatchEvent(new PointerEvent('pointercancel',{bubbles:true,pointerId:1}));}")

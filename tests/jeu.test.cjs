@@ -54,3 +54,20 @@ test('les diagonales éloignées sont permises et les coins voisins interdits',(
   let marks=Array(16).fill(0);marks[1]=marks[11]=1;assert.equal(Logic.inspect(level,marks).rule,null);
   marks=Array(16).fill(0);marks[0]=marks[5]=1;assert.equal(Logic.inspect(level,marks).rule,'touch');
 });
+test('un placement impossible réagit même sans conflit visible, erreurs et étoiles persistent',()=>{
+  const level=levels[0],state=S.fresh(level);
+  const first=S.place(level,state,0,Logic);assert.equal(first.kind,'error');assert.equal(first.rule,null);assert.equal(state.errors,1);assert.ok(state.marks.every(m=>m===0));assert.equal(S.stars(state.errors),2);
+  assert.equal(S.place(level,state,2,Logic).kind,'placed');assert.equal(state.heads[2],0);
+  const duplicate=S.place(level,state,3,Logic);assert.equal(duplicate.rule,'row');assert.equal(state.errors,2);assert.equal(S.stars(state.errors),2);
+  S.place(level,state,0,Logic);assert.equal(state.errors,3);assert.equal(S.stars(state.errors),1);
+  const restored=S.restore(level,JSON.parse(JSON.stringify(state)));assert.equal(restored.errors,3);assert.equal(restored.heads[2],0);
+  S.cross(restored,8,2);assert.equal(restored.errors,3);assert.equal(S.stars(0),3);assert.equal(S.stars(100),1);
+  S.place(level,restored,2,Logic);assert.equal(restored.marks[2],0);assert.equal(restored.errors,3);
+});
+test('les seules cases acceptées sur les 200 grilles sont celles de leur solution unique',()=>{
+  for(const level of levels)for(let cell=0;cell<level.size**2;cell++){
+    const state=S.fresh(level),before=S.clone(state),good=level.solution[Math.floor(cell/level.size)]===cell%level.size;
+    const result=S.place(level,state,cell,Logic);assert.equal(result.kind,good?'placed':'error');
+    if(!good){assert.deepEqual(state.marks,before.marks);assert.deepEqual(state.heads,before.heads);assert.equal(state.selected,before.selected);}
+  }
+});
