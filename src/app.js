@@ -48,6 +48,7 @@
   let notice = null, noticeTimer, effectTimers = [], lastCount = -1, lastStars = -1;
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const HOLD_MS = 430;
+  const HOLD_INDICATOR_MS = 200;
   const t = key => texts[lang][key];
   const unlocked = () => { let id = 1; while (id < 200 && completed.has(id)) id++; return id; };
   const kit = window.Ludi?.init({game:'les-petits-enclos'});
@@ -152,9 +153,8 @@
     backdrop(world); translate(); $('worldName').textContent=world[lang]; $('number').textContent=current;
     $('board').style.setProperty('--n',level.size); $('board').setAttribute('aria-rowcount',level.size); $('board').setAttribute('aria-colcount',level.size); $('board').replaceChildren();
     level.regions.forEach((region,cell)=>{
-      const r=Math.floor(cell/level.size),c=cell%level.size,n=level.size,b=document.createElement('button'); b.className='cell'; b.dataset.cell=cell; b.setAttribute('role','gridcell'); b.tabIndex=cell===0?0:-1;
+      const b=document.createElement('button'); b.className='cell'; b.dataset.cell=cell; b.setAttribute('role','gridcell'); b.tabIndex=cell===0?0:-1;
       b.style.setProperty('--color',S.palette[region]);
-      b.style.setProperty('--edges',`${r===0||level.regions[cell-n]!==region?2:0}px ${c===n-1||level.regions[cell+1]!==region?2:0}px ${r===n-1||level.regions[cell+n]!==region?2:0}px ${c===0||level.regions[cell-1]!==region?2:0}px`);
       $('board').append(b);
     });
     $('inventory').replaceChildren();
@@ -232,6 +232,7 @@
   }
   function stopHold(g) {
     clearTimeout(g.holdTimer);
+    clearTimeout(g.indicatorTimer);
     const button=$('board').children[g.cell];button?.classList.remove('holding');button?.querySelector('.hold-indicator')?.remove();
   }
   function commitHold(g) {
@@ -240,8 +241,12 @@
     g.committed=true;clearTap();performAnimal(g.cell,g.before,g.length);
   }
   function beginHold(g) {
-    const button=$('board').children[g.cell];button.classList.add('holding');
-    button.insertAdjacentHTML('beforeend','<svg class="hold-indicator" viewBox="0 0 60 60" aria-hidden="true"><circle class="hold-track" cx="30" cy="30" r="26"/><circle class="hold-progress" cx="30" cy="30" r="26" pathLength="1"/></svg>');
+    g.indicatorTimer=setTimeout(()=>{
+      if(gesture!==g||g.moved||g.committed)return;
+      const button=$('board').children[g.cell];button.classList.add('holding');
+      button.style.setProperty('--hold-fill',`${HOLD_MS-HOLD_INDICATOR_MS}ms`);
+      button.insertAdjacentHTML('beforeend','<svg class="hold-indicator" viewBox="0 0 60 60" aria-hidden="true"><circle class="hold-track" cx="30" cy="30" r="26"/><circle class="hold-progress" cx="30" cy="30" r="26" pathLength="1"/></svg>');
+    },HOLD_INDICATOR_MS);
     g.holdTimer=setTimeout(()=>commitHold(g),HOLD_MS);
   }
   $('board').addEventListener('pointerdown',event=>{

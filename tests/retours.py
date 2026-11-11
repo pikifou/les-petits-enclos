@@ -14,6 +14,15 @@ async def main():
   page=await ctx.new_page();page.set_default_timeout(8000);errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
   await page.goto(URL+'?level=1');await page.locator('#board').wait_for()
   assert await page.locator('#stars .earned').count()==3
+  # Brief clicks never show the hold clock; holding reveals it after the delay.
+  await hold(page,2,80);assert await page.locator('.hold-indicator').count()==0
+  await page.wait_for_timeout(160);assert await page.locator('.hold-indicator').count()==1
+  await page.locator('#board').dispatch_event('pointercancel',{'pointerId':1});await page.mouse.up();await page.wait_for_timeout(250)
+  assert await page.locator('.hold-indicator').count()==0
+  assert await page.locator('#board img').count()==0
+  borders=await page.locator('#board .cell').evaluate_all("cells=>cells.map(c=>[getComputedStyle(c).boxShadow,getComputedStyle(c,'::before').content])")
+  assert len(set(style[0] for style in borders))==1
+  assert all(style[1]=='none' for style in borders)
   # Legal under the visible rules, but outside the unique solution: immediate rejection.
   await page.locator('[data-cell="0"]').dblclick(delay=65)
   assert await page.locator('[data-cell="0"] img').count()==0
