@@ -4,18 +4,18 @@ Un petit jeu de logique bilingue, autonome et compatible Ludiworld. 200 grilles 
 
 Un animal par ligne, colonne et enclos de couleur. Deux animaux ne se touchent pas, même par un coin.
 
-L’entrée « Entraînement » de l’accueil propose dix petites missions : poser, retirer et annuler, marquer et effacer une croix, tracer une ligne et une colonne, comprendre les lignes, les colonnes, les enclos et les voisins en diagonale, puis réussir une grille complète. Chaque action est vérifiée avant de proposer la mission suivante. L’entraînement se reprend en cours et garde une progression séparée des 200 niveaux.
+L’entrée « Entraînement » de l’accueil propose douze exercices dédiés. Chaque exercice montre d’abord le geste avec une flèche et une démonstration, puis passe à « À toi de jouer ». Les premières grilles ont une seule ligne de quatre cases. Une colonne, deux lignes puis trois lignes introduisent progressivement les gestes et les règles. Seul le dernier exercice utilise une grille complète 4 × 4, à résoudre sans flèche, avec les règles illustrées accessibles par l’aide. Les cibles de chaque exercice sont contrôlées, et seules les règles déjà expliquées s’appliquent. L’entraînement se reprend en cours et garde une progression séparée des 200 niveaux. Un maintien ne pose jamais d’animal ; le double appui est le seul geste tactile de placement.
 
 - Appui simple : marquer ou effacer une croix.
 - Appui maintenu et glissement : tracer plusieurs croix, ou les effacer en partant d’une croix.
-- Appui long immobile ou double appui : placer l’animal choisi, ou le retirer.
+- Double appui : placer l’animal choisi, ou le retirer.
 - Clavier : flèches, Espace pour une croix, Entrée pour un animal.
 
 Les indices donnent une règle générale. La progression reste sur l’appareil. Chaque grille terminée offre une pause naturelle. Le classement de difficulté repose sur un solveur logique ; la difficulté ressentie peut varier.
 
 Un placement incorrect est signalé immédiatement et ne reste pas sur la grille. Trois étoiles sans erreur, deux avec une ou deux erreurs, une à partir de trois erreurs. Les croix restent des notes libres. L’annulation conserve le nombre d’erreurs de l’essai ; Reprendre commence un nouvel essai. Le meilleur résultat de chaque niveau est conservé.
 
-Dans le premier monde (niveaux 1 à 40), une erreur ouvre une fenêtre avec la règle en grand, à confirmer avec « J’ai compris ». Ensuite, le message reste visible sept secondes. Le cercle d’appui long apparaît après 600 ms immobile ; l’animal est posé à 900 ms. Tout glissement annule ce maintien.
+Dans le premier monde (niveaux 1 à 40), une erreur ouvre une fenêtre avec la règle en grand, à confirmer avec « J’ai compris ». Ensuite, le message reste visible sept secondes. Rester appuyé ne pose aucun animal : ce geste sert seulement à tracer des croix en glissant.
 
 ## Développement
 
@@ -23,6 +23,6 @@ Dans le premier monde (niveaux 1 à 40), une erreur ouvre une fenêtre avec la r
 
 `node --test tests/*.test.cjs` vérifie la logique, les identités et les placements. `python tests/navigateur.py` vérifie les gestes et le mode hors ligne sur un serveur local. `python tests/retours.py` vérifie les retours d’erreur, les étoiles, l’appui long souris/tactile et les dispositions portrait/paysage. Ces scripts visent par défaut le port 7374 ; `ENCLOS_URL` permet de viser une autre adresse.
 
-`python tests/entrainement.py` parcourt les dix missions avec les vrais gestes, leur reprise et la sauvegarde séparée de l’aventure. Il vérifie aussi les espaces blancs entre cases et l’affichage sur cinq tailles d’écran.
+`python tests/entrainement.py` parcourt les douze exercices avec les vrais gestes, les démonstrations, les cibles contrôlées, la reprise et la sauvegarde séparée de l’aventure.
 
 Illustrations créées avec l’outil intégré de génération d’images, dans la direction artistique de Ludiworld.

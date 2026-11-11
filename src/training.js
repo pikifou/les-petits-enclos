@@ -1,33 +1,85 @@
 (function(root) {
   'use strict';
-  const base={size:4,regions:[0,0,0,0,1,0,0,0,3,0,0,2,3,3,2,2],solution:[2,0,3,1]};
   const steps=[
-    {id:'place',animals:[],focus:[2],fr:['Pose un animal','Reste appuyé sur la case entourée, ou fais un double appui, pour y poser une luciole.'],en:['Place an animal','Hold the outlined square, or double tap it, to place a firefly.']},
-    {id:'undo',animals:[2],focus:[2],fr:['Retire, puis annule','Reste appuyé sur la luciole, ou fais un double appui, pour la retirer.','Appuie maintenant sur Annuler pour retrouver la luciole.'],en:['Remove, then undo','Hold the firefly, or double tap it, to remove it.','Now press Undo to bring the firefly back.']},
-    {id:'cross',animals:[],focus:[6],fr:['Une croix, puis plus de croix','Fais un appui bref sur la case entourée pour y mettre une croix.','Fais un nouvel appui bref sur la croix pour l’effacer.'],en:['Mark, then erase','Tap the outlined square briefly to mark a cross.','Tap the cross briefly again to erase it.']},
-    {id:'drag-row',animals:[],focus:[0,1,2,3],fr:['Glisse sur une ligne','Pars d’une case vide de la ligne entourée, garde le doigt posé et glisse sur ses quatre cases pour tracer des croix.'],en:['Drag across a row','Start on an empty square of the outlined row, keep your finger down and drag across its four squares to mark crosses.']},
-    {id:'drag-column',animals:[],focus:[0,4,8,12],fr:['Glisse dans une colonne','Pars d’une case vide de la colonne entourée, garde le doigt posé et glisse sur ses quatre cases.'],en:['Drag down a column','Start on an empty square of the outlined column, keep your finger down and drag across its four squares.']},
-    {id:'row',animals:[4,11,13],focus:[0,1,2,3],fr:['Un animal par ligne','Il manque une luciole sur la ligne du haut. Trouve sa place : chaque ligne accueille un seul animal.'],en:['One animal per row','The top row is missing a firefly. Find its place: each row has just one animal.']},
-    {id:'column',animals:[2,11,13],focus:[0,4,8,12],fr:['Un animal par colonne','Il manque une luciole dans la colonne de gauche. Chaque colonne accueille un seul animal.'],en:['One animal per column','The left column is missing a firefly. Each column has just one animal.']},
-    {id:'region',animals:[2,4,13],focus:[11,14,15],fr:['Un animal par enclos','L’enclos violet est encore vide. Trouve où poser sa luciole : un seul animal par couleur.'],en:['One animal per enclosure','The purple enclosure is still empty. Find its firefly’s place: just one animal per color.']},
-    {id:'touch',animals:[4,11],focus:[0,1,2,3],fr:['Même par un coin','Pose une luciole sur la ligne du haut. Elle ne doit toucher aucun voisin, même en diagonale.'],en:['Even at a corner','Place a firefly in the top row. It must not touch any neighbor, even diagonally.']},
-    {id:'finish',animals:[],focus:[],fr:['À toi de tout ranger','Complète cette petite grille avec les quatre règles. Annuler et Indice peuvent t’aider.'],en:['Settle everyone in','Complete this little grid using all four rules. Undo and Hint can help you.']}
+    {id:'place',rows:1,cols:4,tokens:1,kind:'animal',targets:[1],demo:1,
+      fr:['Deux petits appuis','Regarde : deux appuis rapides posent une luciole sous la flèche.','À toi ! Fais deux appuis rapides sur la case montrée.'],
+      en:['Two little taps','Watch: two quick taps place a firefly under the arrow.','Your turn! Tap the pointed square twice quickly.']},
+    {id:'remove',rows:1,cols:4,tokens:1,kind:'animal',targets:[1],demo:1,animals:[1],
+      fr:['Retirer une luciole','Regarde : deux nouveaux appuis retirent la luciole.','À toi ! Tape deux fois sur la luciole pour la retirer.'],
+      en:['Remove a firefly','Watch: two more taps remove the firefly.','Your turn! Tap the firefly twice to remove it.']},
+    {id:'undo',rows:1,cols:4,tokens:1,kind:'undo',targets:[],demo:2,crosses:[2],
+      fr:['Revenir en arrière','Regarde le bouton Annuler : il enlève la dernière action.','À toi ! Appuie sur Annuler pour enlever la croix.'],
+      en:['Go back one step','Watch the Undo button: it takes back the last action.','Your turn! Press Undo to remove the cross.']},
+    {id:'cross',rows:1,cols:4,tokens:1,kind:'cross',targets:[2],demo:2,
+      fr:['Garder une idée de côté','Regarde : un seul appui dessine une croix. Elle veut dire « pas ici ».','À toi ! Fais un seul appui sur la case montrée.'],
+      en:['Set a place aside','Watch: one tap draws a cross. It means “not here”.','Your turn! Tap the pointed square once.']},
+    {id:'erase',rows:1,cols:4,tokens:1,kind:'cross',targets:[2],demo:2,crosses:[2],
+      fr:['Effacer une croix','Regarde : un appui sur une croix l’efface.','À toi ! Fais un seul appui sur la croix.'],
+      en:['Erase a cross','Watch: one tap on a cross erases it.','Your turn! Tap the cross once.']},
+    {id:'drag-row',rows:1,cols:4,tokens:1,kind:'drag',targets:[0,1,2,3],demo:0,path:[0,1,2,3],
+      fr:['Traverser une ligne','Regarde : le doigt reste posé et glisse vers la droite.','À toi ! Pars de la flèche et glisse sur les quatre cases sans lever le doigt.'],
+      en:['Cross a row','Watch: the finger stays down and slides to the right.','Your turn! Start at the arrow and drag across all four squares without lifting.']},
+    {id:'drag-column',rows:4,cols:1,tokens:1,kind:'drag',targets:[0,1,2,3],demo:0,path:[0,1,2,3],
+      fr:['Descendre une colonne','Regarde : une colonne se suit de haut en bas.','À toi ! Pars de la flèche et glisse jusqu’en bas sans lever le doigt.'],
+      en:['Go down a column','Watch: a column runs from top to bottom.','Your turn! Start at the arrow and drag all the way down without lifting.']},
+    {id:'row',rows:2,cols:4,tokens:2,kind:'animal',targets:[4,5,6,7],demo:7,animals:[1],rules:['row'],regions:[0,0,0,0,1,1,1,1],
+      fr:['Une luciole par ligne','La ligne du haut est remplie. Regarde la luciole rejoindre la ligne du bas.','À toi ! Pose une luciole dans la ligne du bas. Une seule par ligne.'],
+      en:['One firefly per row','The top row is filled. Watch a firefly join the bottom row.','Your turn! Place a firefly in the bottom row. Just one per row.']},
+    {id:'column',rows:2,cols:4,tokens:2,kind:'animal',targets:[4,5,6,7],demo:7,animals:[1],rules:['row','column'],regions:[0,0,0,0,1,1,1,1],
+      fr:['Jamais deux dans une colonne','Regarde : la deuxième luciole choisit une autre colonne.','À toi ! Pose une luciole en bas, sans en mettre deux dans la même colonne.'],
+      en:['Never two in a column','Watch: the second firefly chooses a different column.','Your turn! Place a firefly below, without putting two in the same column.']},
+    {id:'region',rows:3,cols:4,tokens:3,kind:'animal',targets:[5,6,8,9],demo:8,animals:[1,7],rules:['row','column','region'],regions:[0,0,1,1,0,2,2,1,2,2,1,1],
+      fr:['Une luciole par couleur','Regarde : l’enclos violet attend encore sa luciole.','À toi ! Trouve une place dans le violet, avec une seule luciole par ligne et par colonne.'],
+      en:['One firefly per color','Watch: the purple enclosure is still waiting for a firefly.','Your turn! Find a place in purple, keeping just one firefly per row and column.']},
+    {id:'touch',rows:3,cols:4,tokens:2,kind:'animal',targets:[0,1,2,3],demo:2,animals:[4],rules:['row','column','region','touch'],regions:[0,0,0,0,1,1,1,1,2,2,2,2],
+      fr:['Même les coins comptent','Regarde : les lucioles gardent de l’espace, même entre leurs coins.','À toi ! Pose une luciole en haut, sans toucher celle qui est déjà là.'],
+      en:['Corners count too','Watch: fireflies leave space, even between their corners.','Your turn! Place a firefly above without touching the one already there.']},
+    {id:'finish',rows:4,cols:4,tokens:4,kind:'animal',targets:null,demo:2,rules:['row','column','region','touch'],regions:[0,0,0,0,1,0,0,0,3,0,0,2,3,3,2,2],answers:[2,4,11,13],
+      fr:['À toi de tout ranger','Voici une vraie petite grille : les quatre règles vont servir ensemble.','À toi ! Range les quatre lucioles. Tu connais maintenant les gestes et les règles.'],
+      en:['Settle everyone in','Here is a real little puzzle: all four rules work together.','Your turn! Settle all four fireflies. You now know the gestures and rules.']}
   ];
-  function create(index, stateAPI) {
-    const step=steps[index],level={...base,regions:[...base.regions],solution:[...base.solution]},state=stateAPI.fresh(level);
-    for(const cell of step.animals)stateAPI.animal(state,cell,level.size);
-    return {level,state};
+  function create(index,S) {
+    const step=steps[index],level={size:step.cols,rows:step.rows,cols:step.cols,animals:step.tokens,regions:step.regions?[...step.regions]:Array(step.rows*step.cols).fill(0),rules:step.rules||[]};
+    const state=S.fresh(level),empty=S.clone(state);
+    for(const cell of step.animals||[])S.animal(state,cell,step.tokens);
+    for(const cell of step.crosses||[])S.cross(state,cell,2);
+    return {level,state,history:step.id==='undo'?[empty]:[]};
   }
-  function check(index,phase,before,state,action) {
-    const id=steps[index].id;
-    if(id==='place')return {phase,done:state.marks[2]===1};
-    if(id==='undo')return {phase:phase===0&&state.marks[2]===0?1:phase,done:phase===1&&action==='undo'&&state.marks[2]===1};
-    if(id==='cross')return {phase:phase===0&&state.marks[6]===2?1:phase,done:phase===1&&before.marks[6]===2&&state.marks[6]===0&&action==='cross'};
-    if(id==='drag-row'||id==='drag-column')return {phase,done:action==='drag'&&steps[index].focus.every(cell=>state.marks[cell]===2)};
-    const target={row:2,column:4,region:11,touch:2}[id];
-    return {phase,done:id==='finish'?base.solution.every((col,row)=>state.marks[row*4+col]===1):state.marks[target]===1};
+  function inspect(level,state) {
+    const occupied=state.marks.flatMap((v,i)=>v===1?[i]:[]);let rule=null;
+    for(let i=0;i<occupied.length;i++)for(let j=i+1;j<occupied.length;j++){
+      const a=occupied[i],b=occupied[j],ar=Math.floor(a/level.cols),br=Math.floor(b/level.cols),ac=a%level.cols,bc=b%level.cols;
+      for(const r of level.rules)if(!rule&&({row:ar===br,column:ac===bc,region:level.regions[a]===level.regions[b],touch:Math.abs(ar-br)<=1&&Math.abs(ac-bc)<=1})[r])rule=r;
+    }
+    return {count:occupied.length,rule,won:occupied.length===level.animals&&!rule};
   }
-  function text(index,phase,lang) {const values=steps[index][lang];return {title:values[0],instruction:values[Math.min(1+phase,values.length-1)]};}
-  const api={steps,create,check,text};
+  function allows(index,action,cell) {
+    const step=steps[index];
+    if(step.id==='finish')return ['animal','cross','drag','undo'].includes(action);
+    if(step.kind==='undo')return action==='undo';
+    return step.kind===action&&step.targets.includes(cell);
+  }
+  function place(index,level,state,cell,S) {
+    if(!allows(index,'animal',cell))return {kind:'blocked'};
+    const step=steps[index];
+    if(step.id==='remove'){if(state.marks[cell]!==1)return {kind:'blocked'};S.animal(state,cell,level.animals);return {kind:'removed'};}
+    if(state.marks[cell]===1){if(step.id!=='finish')return {kind:'blocked'};S.animal(state,cell,level.animals);return {kind:'removed'};}
+    const trial=S.clone(state);if(!S.animal(trial,cell,level.animals))return {kind:'full'};
+    const result=inspect(level,trial);if(result.rule)return {kind:'error',rule:result.rule};
+    if(step.answers&&!step.answers.includes(cell))return {kind:'blocked'};
+    S.animal(state,cell,level.animals);return {kind:'placed',head:state.heads[cell]};
+  }
+  function check(index,before,state,action) {
+    const step=steps[index];
+    if(step.id==='remove')return state.marks[1]===0&&action==='animal';
+    if(step.kind==='undo')return action==='undo'&&state.marks[2]===0;
+    if(step.id==='cross')return action==='cross'&&state.marks[2]===2;
+    if(step.id==='erase')return action==='cross'&&state.marks[2]===0;
+    if(step.kind==='drag')return action==='drag'&&step.targets.every(cell=>state.marks[cell]===2);
+    if(step.id==='finish')return step.answers.every(cell=>state.marks[cell]===1);
+    return action==='animal'&&state.marks.filter(v=>v===1).length===step.tokens;
+  }
+  function text(index,stage,lang) {const v=steps[index][lang];return {title:v[0],instruction:v[stage==='watch'?1:2]};}
+  const api={version:2,steps,create,inspect,allows,place,check,text};
   if(typeof module!=='undefined')module.exports=api;else root.EnclosTraining=api;
 })(typeof window!=='undefined'?window:globalThis);

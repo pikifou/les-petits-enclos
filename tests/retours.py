@@ -16,10 +16,9 @@ async def main():
   page=await ctx.new_page();page.set_default_timeout(8000);errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
   await page.goto(URL+'?level=1');await page.locator('#board').wait_for()
   assert await page.locator('#stars .earned').count()==3
-  # Brief clicks never show the hold clock; holding reveals it after the delay.
-  await hold(page,2,100);assert await page.locator('.hold-indicator').count()==0
-  await page.wait_for_timeout(420);assert await page.locator('.hold-indicator').count()==0
-  await page.wait_for_timeout(150);assert await page.locator('.hold-indicator').count()==1
+  # A long hold never places an animal or shows a clock.
+  await hold(page,2,1200);assert await page.locator('.hold-indicator').count()==0
+  assert await page.locator('#board img').count()==0
   await page.locator('#board').dispatch_event('pointercancel',{'pointerId':1});await page.mouse.up();await page.wait_for_timeout(250)
   assert await page.locator('.hold-indicator').count()==0
   assert await page.locator('#board img').count()==0
@@ -39,22 +38,22 @@ async def main():
   await page.wait_for_timeout(3200);assert await page.locator('#mistake').is_visible()
   await page.screenshot(path=str(OUT/'retour-erreur.png'))
   await acknowledge(page)
-  # Timer commits before release, release must never turn the animal back into a cross.
-  await hold(page,2)
+  # Only a double tap places the animal.
+  await page.locator('[data-cell="2"]').dblclick(delay=65)
   assert await page.locator('[data-cell="2"] img').count()==1
-  await page.mouse.up();assert await page.locator('[data-cell="2"] .cross').count()==0
+  assert await page.locator('[data-cell="2"] .cross').count()==0
   assert await page.locator('#effects .success').count()==1
   await page.locator('#undo').click();assert await page.locator('[data-cell="2"] img').count()==0
   assert (await record(page))['records']['1']['errors']==1
-  # A true touchscreen long press uses touchStart / touchEnd, not mouse emulation.
+  # Two real touchscreen taps, without mouse emulation.
   cdp=await ctx.new_cdp_session(page);box=await page.locator('[data-cell="2"]').bounding_box();point={'x':box['x']+box['width']/2,'y':box['y']+box['height']/2}
-  await cdp.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[point]});await page.wait_for_timeout(970)
+  for _ in range(2):
+   await cdp.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[point]});await page.wait_for_timeout(40)
+   await cdp.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]});await page.wait_for_timeout(60)
   assert await page.locator('[data-cell="2"] img').count()==1
-  await cdp.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]})
   assert (await record(page))['records']['1']['errors']==1
-  # Keeping a wrong square pressed counts once; its release must not create another action.
-  await hold(page,3,1100);assert (await record(page))['records']['1']['errors']==2
-  await page.mouse.up();assert (await record(page))['records']['1']['errors']==2
+  # An incorrect double tap counts once.
+  await page.locator('[data-cell="3"]').dblclick(delay=65);assert (await record(page))['records']['1']['errors']==2
   assert await page.locator('#mistake').is_visible()
   assert 'ligne' in await page.locator('#errorRule').inner_text()
   await page.screenshot(path=str(OUT/'erreur-regle-ligne.png'))

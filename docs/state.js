@@ -2,21 +2,22 @@
   'use strict';
   const palette = ['#e5bd62','#a4cbb0','#b7a1d7','#e6a08c','#93bdd9','#d1ca8d','#d6a0bf','#83b6b1'];
   function fresh(level) {
-    return {marks: Array(level.size**2).fill(0), heads: Array(level.size**2).fill(-1), selected: 0, errors: 0};
+    const count=(level.rows||level.size)*(level.cols||level.size);
+    return {marks: Array(count).fill(0), heads: Array(count).fill(-1), selected: 0, errors: 0};
   }
   const clone = state => ({marks: [...state.marks], heads: [...state.heads], selected: state.selected, errors: state.errors || 0});
   function restore(level, data) {
-    const state = fresh(level), used = new Set();
+    const state = fresh(level), used = new Set(),capacity=level.animals||level.size;
     if (!data || !Array.isArray(data.marks)) return state;
     state.errors = Number.isSafeInteger(data.errors) && data.errors >= 0 ? data.errors : 0;
     state.marks.forEach((_, i) => {
       const mark = data.marks[i], head = data.heads?.[i];
       if (mark === 2) state.marks[i] = 2;
-      if (mark === 1 && Number.isInteger(head) && head >= 0 && head < level.size && !used.has(head)) {
+      if (mark === 1 && Number.isInteger(head) && head >= 0 && head < capacity && !used.has(head)) {
         state.marks[i] = 1; state.heads[i] = head; used.add(head);
       }
     });
-    state.selected = Number.isInteger(data.selected) && data.selected >= 0 && data.selected < level.size && !used.has(data.selected) ? data.selected : nextFree(state, level.size);
+    state.selected = Number.isInteger(data.selected) && data.selected >= 0 && data.selected < capacity && !used.has(data.selected) ? data.selected : nextFree(state, capacity);
     return state;
   }
   function nextFree(state, n) {
