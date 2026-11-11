@@ -163,6 +163,34 @@ button:active:not(:disabled){transform:translateY(2px) scale(.98)}.cell:active:n
 .training-mode:not([data-lesson-id=finish]) #hint{display:none}
 .training-mode .guide-undo{outline:4px solid #e4b343;outline-offset:3px}
 .feedback[data-tone=guide]{font-size:15px;line-height:1.35;color:#3c6349;background:#fffffff2;box-shadow:inset 0 0 0 1px #dceacb;padding:8px;min-height:40px}
+.feedback:empty{visibility:hidden}
 @media(prefers-reduced-motion:no-preference){.guide-arrow{animation:guide-bob .85s ease-in-out infinite alternate}@keyframes guide-bob{from{translate:0 -4px}to{translate:0 3px}}}
 @media(max-height:720px) and (orientation:portrait){.training-mode .board-frame{width:min(100%,calc(min(240px,100dvh - 390px)*var(--ratio) + 20px));margin-top:36px;margin-bottom:9px}.training-mode #trainingInstruction{font-size:13px;min-height:38px}.training-mode .feedback{font-size:12px;min-height:28px}.training-mode .guide-hand{font-size:31px}.training-mode .guide-arrow{width:44px;height:62px}}
 @media(orientation:landscape) and (max-height:600px) and (min-width:600px){.training-mode .board-frame{width:min(100%,calc((100dvh - 120px)*var(--ratio) + 20px));margin-top:50px;grid-row:1/span 9}.training-mode #trainingInstruction{font-size:12px;min-height:30px}.training-mode .feedback{font-size:12px;min-height:30px}#trainingTry{min-height:36px;font-size:14px;margin-top:5px}.training-mode .inventory{margin-top:4px}.training-mode .guide-arrow{width:40px;height:56px}}
+
+/* La règle reste sous le plateau, qui demeure net et entièrement visible. */
+dialog.rule-sheet{position:fixed;inset:auto 0 0;margin:0 auto;width:100%;max-width:510px;max-height:min(55dvh,360px);border:0;border-radius:23px 23px 0 0;padding:14px 20px calc(12px + env(safe-area-inset-bottom));box-shadow:0 -5px 25px #2643352b;background:#fff;text-align:left}
+dialog.rule-sheet::backdrop{background:#20352c08;backdrop-filter:none}
+#mistake.rule-sheet{padding:14px 20px calc(12px + env(safe-area-inset-bottom))}
+.rule-sheet .mistake-sign,.rule-sheet #errorDrawing{display:none}
+.rule-sheet h2,#mistake.rule-sheet h2{font-size:22px;line-height:1.15;margin:0 0 7px}
+.rule-sheet #errorMessage{font-size:14px;line-height:1.3;margin:0 0 8px}
+#mistake.rule-sheet #errorRule{font-size:21px;line-height:1.25;margin:8px 0 12px}
+.rule-sheet .primary,#mistake.rule-sheet .primary{font-size:16px;min-height:44px;padding:9px 16px;margin:6px 0 3px;width:100%}
+.rule-sheet #infoContent>p{font-size:19px;line-height:1.3;margin:10px 0}.rule-sheet #infoContent>.info-note{font-size:12px!important;line-height:1.3}
+body.rule-visible .topbar{height:40px}
+body.rule-visible #play .hud{min-height:48px}
+body.rule-visible #play .run-score,body.rule-visible #play .rules-mini,body.rule-visible #play .apart,body.rule-visible #inventory,body.rule-visible #feedback,body.rule-visible #play .gesture,body.rule-visible #play .actions,body.rule-visible #play .keeper{display:none}
+body.rule-visible #play{display:flex;flex-direction:column}
+body.rule-visible #play .board-frame{width:min(100%,calc((100dvh - var(--rule-height,300px) - 130px)*var(--ratio) + 20px));margin:8px auto 0}
+.cell.rule-related{box-shadow:inset 0 0 0 2px #b98746}
+.cell.rule-attempt{box-shadow:inset 0 0 0 3px #b75342}
+.rule-preview{position:absolute;inset:6%;display:block;background-size:contain;background-position:center;background-repeat:no-repeat;opacity:.7;pointer-events:none}
+.rule-preview::after{content:'!';position:absolute;right:0;top:0;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#ab4e3c;color:#fff;font-weight:bold;box-shadow:0 0 0 2px #fff}
+@media(max-height:650px){#mistake.rule-sheet #errorRule{font-size:20px}.rule-sheet h2,#mistake.rule-sheet h2{font-size:20px}dialog.rule-sheet,#mistake.rule-sheet{padding:11px 15px calc(10px + env(safe-area-inset-bottom))}}
+@media(orientation:landscape) and (max-height:600px) and (min-width:600px){
+ dialog.rule-sheet{left:auto;right:10px;width:calc(50vw - 22px);max-width:430px;max-height:calc(100dvh - 110px)}
+ body.rule-visible #play{display:grid;grid-template-columns:minmax(230px,1fr) minmax(260px,1fr);column-gap:24px}
+ body.rule-visible #play .board-frame{grid-column:1;grid-row:1/span 9;width:min(100%,calc(100dvh - 75px));margin:8px auto 0}
+ body.rule-visible #play .hud{grid-column:2;grid-row:1;min-height:42px}
+}

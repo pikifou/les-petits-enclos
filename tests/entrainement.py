@@ -12,29 +12,31 @@ async def main():
  async with async_playwright() as p:
   browser=await p.chromium.launch();ctx=await browser.new_context(viewport={'width':390,'height':844},locale='fr-FR',has_touch=True)
   page=await ctx.new_page();page.set_default_timeout(8000);errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
-  await page.goto(URL);await page.locator('#training').click()
-  dims=[(1,4)]*6+[(4,1),(2,4),(2,4),(3,4),(3,4),(4,4)]
+  await page.goto(URL);await page.locator('#training').click();assert await page.locator('#trainingTry').count()==0
+  dims=[(1,4)]*6+[(4,1),(2,4),(2,4)]+[(3,4)]*6+[(4,4)]
   for index,(rows,cols) in enumerate(dims):
    board=page.locator('#board');assert await board.get_attribute('aria-rowcount')==str(rows);assert await board.get_attribute('aria-colcount')==str(cols)
    assert await page.locator('#board .cell').count()==rows*cols
-   assert await page.locator('#counter').inner_text()=='Regarde'
-   assert await page.locator('#guideArrow').is_visible()
-   before=(await saved(page))['training']['session']['state']
-   await page.locator('[data-cell="0"]').dblclick(delay=60,force=True)
-   assert (await saved(page))['training']['session']['state']==before
-   await page.locator('#trainingTry').click()
-   assert await page.locator('#counter').inner_text()=='À toi'
+   assert await page.locator('#trainingTry').count()==0
+   if index in [5,6]:
+    before=(await saved(page))['training']['session']['state']
+    assert await page.locator('#guideHand').is_visible()
+    await page.locator('[data-cell="0"]').click(force=True)
+    assert (await saved(page))['training']['session']['state']==before
+    await page.locator('#guideHand').wait_for(state='hidden')
+    assert (await saved(page))['training']['session']['stage']=='try'
+   else:
+    assert (await saved(page))['training']['session']['stage']=='try'
+    assert await page.locator('#guideHand').is_hidden()
    assert await page.locator('#trainingValidated').is_hidden()
    if index==0:
-    assert await page.locator('#inventory button').count()==1
     await page.locator('[data-cell="0"]').dblclick(delay=60,force=True);assert await page.locator('#board img').count()==0
     await page.locator('[data-cell="1"]').click();assert await page.locator('#board img').count()==0;assert await page.locator('#board .cross').count()==0
-    assert 'deux' in (await page.locator('#feedback').inner_text()).lower()
-    await page.wait_for_timeout(360)
+    assert 'deux' in (await page.locator('#feedback').inner_text()).lower();await page.wait_for_timeout(360)
     await page.screenshot(path=str(OUT/'guide-1x4.png'))
    if index in [0,1]:await page.locator('[data-cell="1"]').dblclick(delay=60)
    elif index==2:
-    await page.reload();assert await page.locator('#counter').inner_text()=='À toi';await page.locator('#undo').click()
+    await page.reload();assert (await saved(page))['training']['session']['stage']=='try';await page.locator('#undo').click()
    elif index in [3,4]:await page.locator('[data-cell="2"]').click()
    elif index in [5,6]:await drag(page,0,3)
    elif index in [7,8]:
@@ -45,20 +47,34 @@ async def main():
    elif index==10:
     await page.locator('[data-cell="1"]').dblclick(delay=60);assert 'coin' in await page.locator('#feedback').inner_text();assert await page.locator('#mistake').is_hidden()
     await page.locator('[data-cell="2"]').dblclick(delay=60)
+   elif index==11:
+    await page.locator('[data-cell="1"]').click(force=True);assert 'seulement' in await page.locator('#feedback').inner_text();assert 'ligne' in await page.locator('#feedback').inner_text()
+    assert await page.locator('[data-cell="1"] .cross').count()==0
+    await drag(page,4,7)
+   elif index==12:await drag(page,1,9)
+   elif index==13:
+    for cell in [0,2,8,10]:await page.locator(f'[data-cell="{cell}"]').click()
+   elif index==14:
+    assert await page.locator('#guideArrow').is_hidden()
+    await page.locator('[data-cell="3"]').click(force=True);assert await page.locator('[data-cell="3"] .cross').count()==0
+    for cell in [0,1,2,4,6,7,8,9]:await page.locator(f'[data-cell="{cell}"]').click()
+    assert await page.locator('#trainingValidated').is_hidden();assert await page.locator('#counter').inner_text()=='8 / 9'
+    await page.locator('[data-cell="10"]').click();assert await page.locator('#board .cross').count()==9;assert await page.locator('[data-cell="5"] img').count()==1
+    assert await page.locator('[data-cell="11"] .cross').count()==0
    else:
     assert await page.locator('#guideArrow').is_hidden()
     await page.locator('#hint').click();assert await page.locator('.rule-drawing').count()==4;await page.locator('#info .primary').click()
     for cell in [2,4,11,13]:await page.locator(f'[data-cell="{cell}"]').dblclick(delay=60)
    assert await page.locator('#trainingValidated').is_visible(),index
-   if index in [6,8,9,11]:await page.screenshot(path=str(OUT/f'guide-mission-{index+1}.png'))
-   if index<11:await page.locator('#trainingNext').click()
-  data=await saved(page);assert sorted(data['training']['completed'])==list(range(12));assert data['completed']==[] and data['records']=={}
-  kit=await page.evaluate('Ludi.data()');assert 'enclos_termines' not in kit['progress'];assert kit['progress']['missions_entrainement']['value']==12
+   if index in [6,8,9,11,12,13,14,15]:await page.screenshot(path=str(OUT/f'guide-mission-{index+1}.png'))
+   if index<15:await page.locator('#trainingNext').click()
+  data=await saved(page);assert sorted(data['training']['completed'])==list(range(16));assert data['completed']==[] and data['records']=={}
+  kit=await page.evaluate('Ludi.data()');assert 'enclos_termines' not in kit['progress'];assert kit['progress']['missions_entrainement']['value']==16
   await page.reload();assert await page.locator('#trainingValidated').is_visible();await page.locator('#trainingNext').click()
   assert await page.locator('#trainingCard').is_hidden();assert await page.locator('#board .cell').count()==16
   await page.locator('[data-cell="2"]').dblclick(delay=60);record=(await saved(page))['records']
   await page.locator('#map').click();await page.locator('#training').click();await page.locator('#map').click();assert (await saved(page))['records']==record
   assert not errors,errors
-  print('12 exercices dedies, Regarde/A toi, fleches, cibles strictes, gestes, regles progressives, reprise et sauvegarde separee OK')
+  print('16 exercices directs, demos automatiques, cibles, neuf croix autour du chat, reprise et sauvegarde separee OK')
   await browser.close()
 asyncio.run(main())

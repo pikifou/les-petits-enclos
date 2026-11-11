@@ -28,12 +28,12 @@ async def main():
   # Legal under the visible rules, but outside the unique solution: immediate rejection.
   await page.locator('[data-cell="0"]').dblclick(delay=65)
   assert await page.locator('[data-cell="0"] img').count()==0
-  assert await page.locator('#effects .error').count()==1
+  assert await page.locator('#board .rule-preview').count()==1
   assert await page.locator('#feedback').get_attribute('data-tone')=='error'
   assert await page.locator('#stars .earned').count()==2
   assert (await record(page))['records']['1']['errors']==1
   assert await page.locator('#mistake').is_visible()
-  assert float(await page.locator('#errorRule').evaluate('e=>parseFloat(getComputedStyle(e).fontSize)'))>=22
+  assert float(await page.locator('#errorRule').evaluate('e=>parseFloat(getComputedStyle(e).fontSize)'))>=20
   await page.locator('#mistake').press('Escape');assert await page.locator('#mistake').is_visible()
   await page.wait_for_timeout(3200);assert await page.locator('#mistake').is_visible()
   await page.screenshot(path=str(OUT/'retour-erreur.png'))

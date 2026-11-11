@@ -34,6 +34,21 @@
     {id:'touch',rows:3,cols:4,tokens:2,kind:'animal',targets:[0,1,2,3],demo:2,animals:[4],rules:['row','column','region','touch'],regions:[0,0,0,0,1,1,1,1,2,2,2,2],
       fr:['Même les coins comptent','Regarde : les lucioles gardent de l’espace, même entre leurs coins.','À toi ! Pose une luciole en haut, sans toucher celle qui est déjà là.'],
       en:['Corners count too','Watch: fireflies leave space, even between their corners.','Your turn! Place a firefly above without touching the one already there.']},
+    {id:'exclude-row',rows:3,cols:4,tokens:1,kind:'notes',species:'chats',targets:[4,6,7],demo:4,animals:[5],regions:[0,0,0,0,1,1,1,1,2,2,2,2],
+      nudge:{fr:'Pour cette mission, marque seulement les autres cases de la ligne du chat.',en:'For this mission, mark only the other squares in the cat’s row.'},
+      fr:['La ligne du chat','Un chat est déjà posé.','Mets des croix sur les autres cases de sa ligne : aucun autre animal ne peut y aller. Tu peux glisser.'],
+      en:['The cat’s row','A cat is already placed.','Mark crosses in the other squares of its row: no other animal can go there. You can drag.']},
+    {id:'exclude-column',rows:3,cols:4,tokens:1,kind:'notes',species:'chats',targets:[1,9],demo:1,animals:[5],crosses:[4,6,7],regions:[0,0,0,0,1,1,1,1,2,2,2,2],
+      nudge:{fr:'La ligne est déjà faite. Pour cette mission, marque seulement les autres cases de la colonne du chat.',en:'The row is already done. For this mission, mark only the other squares in the cat’s column.'},
+      fr:['La colonne du chat','La ligne est déjà marquée.','Marque maintenant les autres cases de la colonne du chat, au-dessus et en dessous.'],
+      en:['The cat’s column','The row is already marked.','Now mark the other squares in the cat’s column, above and below it.']},
+    {id:'exclude-corners',rows:3,cols:4,tokens:1,kind:'notes',species:'chats',targets:[0,2,8,10],demo:0,animals:[5],crosses:[1,4,6,7,9],regions:[0,0,0,0,1,1,1,1,2,2,2,2],
+      nudge:{fr:'La ligne et la colonne sont déjà faites. Pour cette mission, marque seulement les quatre coins autour du chat.',en:'The row and column are already done. For this mission, mark only the four corners around the cat.'},
+      fr:['Les coins aussi','La ligne et la colonne sont déjà marquées.','Ajoute les croix dans les quatre cases qui touchent le chat par un coin. Elles sont interdites aussi.'],
+      en:['Corners too','The row and column are already marked.','Add crosses in the four squares that touch the cat at a corner. They are ruled out too.']},
+    {id:'exclude-all',rows:3,cols:4,tokens:1,kind:'notes',species:'chats',targets:[0,1,2,4,6,7,8,9,10],demo:5,guided:false,animals:[5],regions:[0,0,0,0,1,1,1,1,2,2,2,2],
+      fr:['À chaque animal, ses croix','Un chat est déjà posé.','Marque toutes les cases interdites : sa ligne, sa colonne et ses voisines, coins compris. Garde les autres cases libres.'],
+      en:['An animal, then its crosses','A cat is already placed.','Mark every ruled-out square: its row, column and neighbors, including corners. Leave the other squares free.']},
     {id:'finish',rows:4,cols:4,tokens:4,kind:'animal',targets:null,demo:2,rules:['row','column','region','touch'],regions:[0,0,0,0,1,0,0,0,3,0,0,2,3,3,2,2],answers:[2,4,11,13],
       fr:['À toi de tout ranger','Voici une vraie petite grille : les quatre règles vont servir ensemble.','À toi ! Range les quatre lucioles. Tu connais maintenant les gestes et les règles.'],
       en:['Settle everyone in','Here is a real little puzzle: all four rules work together.','Your turn! Settle all four fireflies. You now know the gestures and rules.']}
@@ -57,6 +72,7 @@
     const step=steps[index];
     if(step.id==='finish')return ['animal','cross','drag','undo'].includes(action);
     if(step.kind==='undo')return action==='undo';
+    if(step.kind==='notes')return ['notes','cross','drag'].includes(action)&&step.targets.includes(cell);
     return step.kind===action&&step.targets.includes(cell);
   }
   function place(index,level,state,cell,S) {
@@ -76,10 +92,11 @@
     if(step.id==='cross')return action==='cross'&&state.marks[2]===2;
     if(step.id==='erase')return action==='cross'&&state.marks[2]===0;
     if(step.kind==='drag')return action==='drag'&&step.targets.every(cell=>state.marks[cell]===2);
+    if(step.kind==='notes')return ['cross','drag'].includes(action)&&step.targets.every(cell=>state.marks[cell]===2);
     if(step.id==='finish')return step.answers.every(cell=>state.marks[cell]===1);
     return action==='animal'&&state.marks.filter(v=>v===1).length===step.tokens;
   }
-  function text(index,stage,lang) {const v=steps[index][lang];return {title:v[0],instruction:v[stage==='watch'?1:2]};}
-  const api={version:2,steps,create,inspect,allows,place,check,text};
+  function text(index,stage,lang) {const v=steps[index][lang];return {title:v[0],instruction:v[stage==='watch'?1:2].replace(/^À toi ! /,'').replace(/^Your turn! /,'')};}
+  const api={version:3,steps,create,inspect,allows,place,check,text};
   if(typeof module!=='undefined')module.exports=api;else root.EnclosTraining=api;
 })(typeof window!=='undefined'?window:globalThis);

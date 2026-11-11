@@ -26,7 +26,7 @@
   Object.assign(texts.fr, {
     errorTitle:'Regarde la règle',errorOK:'J’ai compris',
     training:'Entraînement',trainingIntro:'Regarde, puis essaie à ton tour',trainingResume:'Reprendre les petites missions',trainingReplay:'Refaire les petites missions',mission:'Mission',missionDone:'Mission réussie !',nextMission:'Mission suivante',startAdventure:'Commencer l’aventure',yourTurn:'À toi',trainingFinished:'Tu connais les bases !',trainingFinishedText:'Les cinq mondes t’attendent.',
-    watch:'Regarde',watchFirst:'Regarde le geste, puis appuie sur « À toi de jouer ».',yourTurnButton:'À toi de jouer',reviewDemo:'Revoir le geste',followArrow:'Suis la flèche : cette fois, utilise la case montrée.',doubleTarget:'Fais deux appuis rapides sur la case de la flèche.',oneTarget:'Un seul appui sur la case de la flèche.',dragTarget:'Garde le doigt posé et glisse dans le sens de la flèche.',pressUndo:'La flèche montre le bouton Annuler. Appuie dessus.',tryRules:'Prends ton temps : utilise les règles que tu viens d’apprendre.',
+    watch:'Regarde',watchFirst:'Le geste se termine, puis tu pourras essayer.',playNow:'Essaie',notesHelp:'Marque les cases où un autre animal ne peut plus aller. Garde les autres libres.',reviewDemo:'Recommencer',followArrow:'Suis la flèche : cette fois, utilise la case montrée.',doubleTarget:'Fais deux appuis rapides sur la case de la flèche.',oneTarget:'Un seul appui sur la case de la flèche.',dragTarget:'Garde le doigt posé et glisse dans le sens de la flèche.',pressUndo:'La flèche montre le bouton Annuler. Appuie dessus.',tryRules:'Prends ton temps : utilise les règles que tu viens d’apprendre.',
     errorAllRules:'Un animal par ligne, par colonne et par enclos. Les animaux ne se touchent pas, même par un coin.',
     errorNoFinish:'Cette place empêcherait de ranger tous les animaux en respectant les règles.'
   });
@@ -44,7 +44,7 @@
   Object.assign(texts.en, {
     errorTitle:'Look at the rule',errorOK:'I understand',
     training:'Practice',trainingIntro:'Watch, then try it yourself',trainingResume:'Resume the little missions',trainingReplay:'Replay the little missions',mission:'Mission',missionDone:'Mission complete!',nextMission:'Next mission',startAdventure:'Start the adventure',yourTurn:'Your turn',trainingFinished:'You know the basics!',trainingFinishedText:'The five worlds are waiting.',
-    watch:'Watch',watchFirst:'Watch the gesture, then press “Your turn”.',yourTurnButton:'Your turn',reviewDemo:'Watch again',followArrow:'Follow the arrow: use the pointed square this time.',doubleTarget:'Tap the square under the arrow twice quickly.',oneTarget:'Tap the square under the arrow once.',dragTarget:'Keep your finger down and drag along the arrow.',pressUndo:'The arrow points to Undo. Press that button.',tryRules:'Take your time: use the rules you have just learned.',
+    watch:'Watch',watchFirst:'The gesture will finish, then you can try.',playNow:'Try it',notesHelp:'Mark the squares where another animal cannot go. Leave the others free.',reviewDemo:'Restart',followArrow:'Follow the arrow: use the pointed square this time.',doubleTarget:'Tap the square under the arrow twice quickly.',oneTarget:'Tap the square under the arrow once.',dragTarget:'Keep your finger down and drag along the arrow.',pressUndo:'The arrow points to Undo. Press that button.',tryRules:'Take your time: use the rules you have just learned.',
     errorAllRules:'One animal per row, column and enclosure. Animals cannot touch, even at a corner.',
     errorNoFinish:'This place would stop you settling all the animals while following the rules.'
   });
@@ -179,7 +179,7 @@
     if(!practice){training=null;document.body.classList.remove('training-mode','training-basics');$('trainingCard').hidden=true;$('play').querySelector('.hud h1 small').textContent='/ 200';}
     cancelGesture(); clearTap(); clearEffects(); clearTimeout(noticeTimer); notice=null; closeDialogs();
     if(!practice){current=Math.max(1,Math.min(200,id));adventureCurrent=current;saved.current=current;}
-    if(practice){level=training.level;world=worlds[0];state=training.state;}else{level=PUZZLES.levels[current-1]; world=worlds[Math.floor((current-1)/40)]; state=S.restore(level,records[current]);}
+    if(practice){level=training.level;world=worlds.find(w=>w.id===Training.steps[training.index].species)||worlds[0];state=training.state;}else{level=PUZZLES.levels[current-1]; world=worlds[Math.floor((current-1)/40)]; state=S.restore(level,records[current]);}
     history=practice?(training.history||[]):[];lastCount=-1;lastStars=-1; won=!training&&Logic.inspect(level,state.marks).won; mode='play'; $('home').hidden=true; $('play').hidden=false;
     backdrop(world); translate(); $('worldName').textContent=world[lang]; $('number').textContent=current;
     $('board').style.setProperty('--n',cols());$('board').style.setProperty('--rows',rows());$('board').closest('.board-frame').style.setProperty('--ratio',cols()/rows()); $('board').setAttribute('aria-rowcount',rows()); $('board').setAttribute('aria-colcount',cols()); $('board').replaceChildren();
@@ -200,9 +200,9 @@
   function startTraining(index=0,resume=true) {
     cancelGesture();index=Math.max(0,Math.min(Training.steps.length-1,index));
     const exercise=Training.create(index,S),session=trainingProgress.session;
-    training={index,stage:'watch',demoReady:false,done:false,level:exercise.level,state:exercise.state,history:exercise.history};
+    training={index,stage:Training.steps[index].kind==='drag'?'watch':'try',done:false,level:exercise.level,state:exercise.state,history:exercise.history};
     if(resume&&session?.index===index&&Array.isArray(session.state?.marks)&&session.state.marks.length===exercise.state.marks.length){
-      training.state=S.restore(exercise.level,session.state);training.stage=session.stage==='try'?'try':'watch';
+      training.state=S.restore(exercise.level,session.state);training.stage=Training.steps[index].kind==='drag'&&session.stage!=='try'?'watch':'try';
       training.done=session.done===true&&trainingProgress.completed.includes(index);
       training.history=(Array.isArray(session.history)?session.history:[]).slice(-100).map(snapshot=>S.restore(exercise.level,snapshot));
       if(Training.steps[index].id==='undo'&&!training.done&&!training.history.length)training.history=exercise.history;
@@ -218,13 +218,12 @@
     document.body.dataset.lessonKind=step.kind;document.body.dataset.lessonId=step.id;
     $('reset').querySelector('[data-t="reset"]').textContent=t('reviewDemo');
     $('worldName').textContent=t('training');$('play').querySelector('.hud [data-t="level"]').textContent=t('mission');$('number').textContent=training.index+1;$('play').querySelector('.hud h1 small').textContent=`/ ${Training.steps.length}`;
-    $('counter').textContent=training.done?'✓':t(training.stage==='watch'?'watch':'yourTurn');
-    $('trainingProgress').textContent=`${t('mission')} ${training.index+1} / ${Training.steps.length} · ${t(training.stage==='watch'?'watch':'yourTurn')}`;
+    $('counter').textContent=training.done?'✓':step.kind==='notes'?`${step.targets.filter(cell=>state.marks[cell]===2).length} / ${step.targets.length}`:t(training.stage==='watch'?'watch':'playNow');
+    $('trainingProgress').textContent=`${t('mission')} ${training.index+1} / ${Training.steps.length}${training.stage==='watch'?' · '+t('watch'):''}`;
     $('trainingTitle').textContent=copy.title;$('trainingInstruction').textContent=copy.instruction;
     $('trainingInstruction').hidden=training.done;$('trainingValidated').hidden=!training.done;
-    $('trainingTry').hidden=training.done||training.stage!=='watch';$('trainingTry').disabled=!training.demoReady;$('trainingTry').textContent=t(training.demoReady?'yourTurnButton':'watch');
     $('trainingCard').classList.toggle('done',training.done);$('trainingNext').textContent=t(training.index===Training.steps.length-1?'startAdventure':'nextMission');$('trainingNext').hidden=wrapping;
-    const focus=training.stage==='watch'?[step.demo]:(step.targets||[]);
+    const focus=step.guided===false?[]:training.stage==='watch'?[step.demo]:(step.targets||[]);
     [...$('board').children].forEach((button,cell)=>{button.classList.toggle('training-focus',!training.done&&step.kind!=='undo'&&focus.includes(cell));button.setAttribute('aria-disabled',String(training.done||training.stage==='watch'||step.targets!==null&&!step.targets.includes(cell)));});
     $('undo').disabled=training.done||training.stage==='watch'||!history.length||!['undo','finish'].includes(step.id);
     $('undo').classList.toggle('guide-undo',!training.done&&step.kind==='undo');
@@ -242,7 +241,8 @@
   }
   function trainingFeedback(rule) {
     const step=Training.steps[training.index];
-    let message=rule?t('lessons')[rule]:t(step.id==='finish'?'tryRules':step.kind==='undo'?'pressUndo':step.kind==='animal'?'doubleTarget':step.kind==='drag'?'dragTarget':'oneTarget');
+    let message=rule?t('lessons')[rule]:t(step.kind==='notes'?'notesHelp':step.id==='finish'?'tryRules':step.kind==='undo'?'pressUndo':step.kind==='animal'?'doubleTarget':step.kind==='drag'?'dragTarget':'oneTarget');
+    if(step.kind==='notes'&&step.nudge)message=step.nudge[lang];
     if(training.stage==='watch')message=t('watchFirst');
     if(rule==='column')message=lang==='fr'?'Il y a déjà une luciole dans cette colonne. Choisis une autre colonne.':'There is already a firefly in this column. Choose another column.';
     feedback('guide',message);positionGuide();
@@ -268,7 +268,7 @@
     const step=Training.steps[training.index];
     if(!$('guideArrow'))$('guideLayer').innerHTML='<div id="guideArrow" class="guide-arrow"><svg viewBox="0 0 50 70"><path d="M15 4H35V33H46L25 65L4 33H15Z" fill="#e9b84d" stroke="#fff" stroke-width="4" stroke-linejoin="round"/></svg></div><span id="guideHand" class="guide-hand">👇</span><div id="guideResults"></div>';
     const arrow=$('guideArrow'),target=step.kind==='undo'?$('undo'):$('board').children[step.demo];
-    arrow.hidden=training.stage==='try'&&step.id==='finish';guidePosition(arrow,target,true);
+    arrow.hidden=step.guided===false||training.stage==='try'&&step.id==='finish';guidePosition(arrow,target,true);
     $('guideHand').hidden=training.stage!=='watch';
     const handTarget=step.kind==='undo'?$('undo'):$('board').children[training.demoCell??step.demo];
     guidePosition($('guideHand'),handTarget);
@@ -290,7 +290,7 @@
       later(350,tap);if(step.kind==='animal')later(670,tap);
       later(950,()=>demoResult(step.demo,['remove','erase','undo'].includes(step.id)?'remove':step.kind==='animal'?'animal':'cross'));
     }
-    later(1300,()=>{training.demoReady=true;renderTraining();});
+    later(1300,()=>{clearDemo();clearTap();clearTimeout(noticeTimer);notice=null;training.stage='try';training.demoCell=undefined;render();remember();});
   }
   function render() {
     if(!state) return;
@@ -335,15 +335,39 @@
   }
   function info(title,content,note='') {
     cancelGesture();clearTap();$('infoContent').innerHTML=`<h2>${title}</h2>${content}${note?`<p class="info-note">${note}</p>`:''}`;
+    $('info').classList.toggle('rule-sheet',title===t('ruleTitle'));
     $('info').querySelector('.primary').onclick=null; $('info').querySelector('.primary').textContent=t('ok'); $('info').showModal();
+    if($('info').classList.contains('rule-sheet'))activateRuleSheet();
+  }
+  function fitRuleSheet() {
+    const sheet=document.querySelector('dialog.rule-sheet[open]');if(!sheet)return;
+    document.body.style.setProperty('--rule-height',`${Math.ceil(sheet.getBoundingClientRect().height)}px`);
+  }
+  function activateRuleSheet() {
+    document.body.classList.add('rule-visible');requestAnimationFrame(fitRuleSheet);
+  }
+  function clearRuleSheet() {
+    if(!$('mistake').open){
+      $('board').querySelectorAll('.rule-related,.rule-attempt').forEach(cell=>cell.classList.remove('rule-related','rule-attempt'));
+      $('board').querySelectorAll('.rule-preview').forEach(node=>node.remove());
+    }
+    if(document.querySelector('dialog.rule-sheet[open]'))return;
+    document.body.classList.remove('rule-visible');document.body.style.removeProperty('--rule-height');
   }
   let mistakeCell = null;
   function showMistake(cell,rule,message) {
-    cancelGesture();clearTap();mistakeCell=cell;
+    cancelGesture();clearTap();clearEffects();mistakeCell=cell;
     $('errorMessage').textContent=rule?message:t('errorNoFinish');
     $('errorRule').textContent=rule?t('lessons')[rule]:t('errorAllRules');
-    $('errorDrawing').innerHTML=rule?ruleDrawing(rule):'';
-    $('mistake').showModal();
+    $('errorDrawing').replaceChildren();
+    const row=Math.floor(cell/cols()),col=cell%cols();
+    [...$('board').children].forEach((button,index)=>{
+      const r=Math.floor(index/cols()),c=index%cols();
+      const related=rule==='row'?r===row:rule==='column'?c===col:rule==='region'?level.regions[index]===level.regions[cell]:rule==='touch'?Math.abs(r-row)<=1&&Math.abs(c-col)<=1:false;
+      button.classList.toggle('rule-related',related);button.classList.toggle('rule-attempt',index===cell);
+    });
+    const preview=document.createElement('span');preview.className='rule-preview';preview.setAttribute('aria-hidden','true');preview.style.backgroundImage=`url('${headFile(world,Math.max(0,state.selected))}')`;$('board').children[cell].append(preview);
+    $('mistake').showModal();activateRuleSheet();
   }
   function ruleDrawing(kind) {
     const face=headFile(world||worlds[0],0), chosen=kind==='touch'?[5,10]:[5];
@@ -431,10 +455,6 @@
     startTraining(trainingProgress.completed.length===Training.steps.length?0:session?.done?Math.min(index+1,Training.steps.length-1):index,true);
   };
   $('trainingNext').onclick=()=>{if(!training?.done||wrapping)return;if(training.index===Training.steps.length-1)loadLevel(unlocked());else startTraining(training.index+1,false);};
-  $('trainingTry').onclick=()=>{
-    if(!training||!training.demoReady||training.stage!=='watch')return;
-    clearDemo();clearTap();clearTimeout(noticeTimer);notice=null;training.stage='try';training.demoCell=undefined;render();remember();
-  };
   $('next').onclick=()=>{if(!wrapping)loadLevel(current+1);};$('winMap').onclick=showHome;
   $('replay').onclick=()=>{delete records[current];loadLevel(current);};
   document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>b.closest('dialog').close()));
@@ -444,12 +464,13 @@
   kit?.onWrapUp(()=>{wrapping=true;if(training?.done){$('trainingNext').hidden=true;kit.checkpoint('fin-mission');}else if(won){$('next').hidden=true;kit.checkpoint('fin-enclos');}});
   $('pause').addEventListener('cancel',event=>event.preventDefault());
   $('mistake').addEventListener('cancel',event=>event.preventDefault());
+  $('mistake').addEventListener('close',clearRuleSheet);$('info').addEventListener('close',clearRuleSheet);
   $('ackError').onclick=()=>{
     $('mistake').close();clearTimeout(noticeTimer);notice=null;renderStatus();
-    if(mistakeCell!==null)$('board').children[mistakeCell]?.focus();
+    if(mistakeCell!==null)$('board').children[mistakeCell]?.focus({preventScroll:true});
     mistakeCell=null;
   };
-  window.addEventListener('resize',()=>{if(training)requestAnimationFrame(positionGuide);});
+  window.addEventListener('resize',()=>{if(training)requestAnimationFrame(positionGuide);if(document.body.classList.contains('rule-visible'))requestAnimationFrame(fitRuleSheet);});
   showHome();
   const requested=Number(new URLSearchParams(location.search).get('level'));
   const practice=Number(new URLSearchParams(location.search).get('practice'));
