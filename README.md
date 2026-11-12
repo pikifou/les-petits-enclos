@@ -8,7 +8,7 @@ L’entrée « Entraînement » de l’accueil propose quinze exercices dédiés
 
 - Appui simple : marquer ou effacer une croix.
 - Appui maintenu et glissement : tracer plusieurs croix, ou les effacer en partant d’une croix.
-- Double appui : placer l’animal choisi, ou le retirer.
+- Double appui : placer automatiquement un animal disponible, ou retirer celui de la case. Aucun choix d’animal à faire.
 - Clavier : flèches, Espace pour une croix, Entrée pour un animal.
 
 Dans l’entraînement, la mission des lignes utilise quatre colonnes et deux lignes ; celle des colonnes utilise deux colonnes et quatre lignes.

@@ -15,6 +15,7 @@ async def main():
         page.set_default_timeout(8000)
         page.on('pageerror',lambda e:errors.append(str(e)))
         await page.goto(URL);await page.locator('#continue').click()
+        assert await page.locator('#inventory, .head-choice, #play [aria-pressed]').count()==0
         cell=page.locator('[data-cell="2"]')
         await cell.click();assert await cell.locator('.cross').count()==1
         await page.wait_for_timeout(360);await cell.click();assert await cell.locator('.cross').count()==0
@@ -54,7 +55,7 @@ async def main():
         assert await page.locator('#winHeads img').count()==4
         await page.reload();assert await page.locator('#victory').is_visible()
         await page.locator('#next').click();assert await page.locator('#number').inner_text()=='2'
-        # Five chapters, all head inventories, wide and compact layouts.
+        # Five chapters, automatic heads, wide and compact layouts.
         for width,height in [(390,844),(360,740),(768,1024)]:
             await page.set_viewport_size({'width':width,'height':height})
             for level in [1,41,81,121,200]:
